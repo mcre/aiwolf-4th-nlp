@@ -1,0 +1,11 @@
+.DS_Store
+/bin/
+/lib/
+/log/
+/result/
+/misc/
+translatedMap.dat
+jumandic.dat
+jumandic.pat
+*.int
+Test.java
