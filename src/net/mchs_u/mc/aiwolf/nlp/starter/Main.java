@@ -9,10 +9,10 @@ public class Main {
 		int port = 10000;
 		
 		String type = null;
-		//type = "ローカル*5";
+		type = "ローカル*5";
 		//type = "ローカル*4 + 人間*1";
 		//type = "大会5人接続";
-		type = "大会1人接続";
+		//type = "大会1人接続";
 				
 		switch (type) {
 		case "ローカル*5":
@@ -28,10 +28,10 @@ public class Main {
 			break;
 		case "大会5人接続":
 			for(int i = 0; i < 5; i++)
-				Starter.startAIClient("kachako.org", port);
+				Starter.startAIClient("kanolab.net", port);
 			break;
 		case "大会1人接続":
-			Starter.startAIClient("kachako.org", port);
+			Starter.startAIClient("kanolab.net", port);
 			break;
 		}
 		
