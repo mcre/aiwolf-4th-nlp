@@ -45,7 +45,7 @@
 * mainメソッドが含まれるクラス
   + net.mchs_u.mc.aiwolf.nlp.starter.Main
     - サーバとクライアント5体が一発で起動します
-  + net.mchs_u.mc.aiwolf.nlp.blade.Clause
+  + net.mchs_u.mc.aiwolf.nlp.chaser.Clause
     - 文章を解析してClauseクラスに格納された結果を確認できます
   + net.mchs_u.mc.aiwolf.nlp.util.KNPChecker
     - Clauseクラスに格納されるまえの詳細な解析結果を確認できます
