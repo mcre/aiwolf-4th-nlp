@@ -1,11 +1,12 @@
 チームm_cre (自然言語処理部門)
 ====
 
-[人狼知能プレ大会2018 自然言語処理部門](http://aiwolf.org/archives/1838)の出場エージェントです。
+[第4回人狼知能大会 自然言語処理部門](http://aiwolf.org/4th-aiwolf-contest)の出場エージェントです。
 
 ## プログラム解説
 
-* [第3回出場エージェント](https://github.com/mcre/aiwolf-3rd-nlp) からほとんど変えてません。
+* [第3回出場エージェント](https://github.com/mcre/aiwolf-3rd-nlp) をベースにしています。
+* 更新したら記載予定
 
 ## 動作環境
 
