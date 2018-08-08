@@ -5,33 +5,40 @@ import java.net.SocketTimeoutException;
 
 public class Main {
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException, SocketTimeoutException, IOException {
-		int gameNum = 100; // ローカル用
+		String type = "local5";
+		String server = "";
 		int port = 10000;
+		int gameNum = 100; // ローカル用
 		
-		String type = null;
-		type = "ローカル*5";
-		//type = "ローカル*4 + 人間*1";
-		//type = "大会5人接続";
-		//type = "大会1人接続";
+		for(String arg: args) {
+			if(arg.startsWith("type="))
+				type = arg.replaceFirst("type=", "");
+			if(arg.startsWith("server="))
+				server = arg.replaceFirst("server=", "");
+			if(arg.startsWith("port="))
+				port = Integer.parseInt(arg.replaceFirst("port=", ""));
+			if(arg.startsWith("gameNum="))
+				gameNum = Integer.parseInt(arg.replaceFirst("gameNum=", ""));
+		}
 				
 		switch (type) {
-		case "ローカル*5":
+		case "local5":
 			Starter.startServer(port, gameNum, 5000);
 			for(int i = 0; i < 5; i++)
 				Starter.startAIClient("localhost", port);
 			break;
-		case "ローカル*4 + 人間*1":
+		case "local4human1":
 			Starter.startServer(port, gameNum, 300000);
 			for(int i = 0; i < 4; i++)
 				Starter.startAIClient("localhost", port);
 			Starter.startHumanClient("localhost", port);
 			break;
-		case "大会5人接続":
+		case "remote5":
 			for(int i = 0; i < 5; i++)
-				Starter.startAIClient("kanolab.net", port);
+				Starter.startAIClient(server, port);
 			break;
-		case "大会1人接続":
-			Starter.startAIClient("kanolab.net", port);
+		case "remote1":
+			Starter.startAIClient(server, port);
 			break;
 		}
 		
