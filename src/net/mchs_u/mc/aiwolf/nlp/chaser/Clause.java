@@ -93,7 +93,14 @@ public class Clause {
 	public static List<Clause> createClauses(String text) throws IOException, InterruptedException {
 		List<Clause> clauses = new ArrayList<>();
 		
-		KNP knp = new KNP();
+		String pathJuman = System.getenv("PathJuman");
+		String pathKNP = System.getenv("PathKNP");
+		KNP knp = null;
+		if(pathJuman == null || pathKNP == null)
+			knp = new KNP();
+		else
+			knp = new KNP("/bin/sh", pathJuman, pathKNP);
+
 		ObjectNode root = knp.parse(text);
 		
 		for(JsonNode clauseNode: root.get("clauseas")){
