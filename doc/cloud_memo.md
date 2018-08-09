@@ -56,13 +56,19 @@ $ # 辞書の設定
 $ nano ~/usr/etc/jumanrc
 $ ## 「辞書ファイル」に`/root/aiwolf-4th-nlp/dic`を追加
 $ # jumanとknpの環境変数の設定
-$ touch ~/.bash_profile
-$ echo 'export PathJuman=/root/usr/bin/juman' >>~/.bash_profile
-$ echo 'export PathKNP=/root/usr/bin/knp' >>~/.bash_profile
-$ source ~/.bash_profile
+$ echo 'export PathJuman=/root/usr/bin/juman' >>~/.bashrc
+$ echo 'export PathKNP=/root/usr/bin/knp' >>~/.bashrc
+$ source ~/.bashrc
 ```
 
 ## 6. 実行
+
+* コンテナの中に入る
+
+```
+$ sudo docker start aiwolf
+$ sudo docker exec -it aiwolf bash
+```
 
 * 辞書変更時
 
@@ -85,6 +91,7 @@ $ util/compile.sh
 $ cd ~/aiwolf-4th-nlp/
 $ util/main.sh
 $ util/main.sh type=remote5 server=****.net port=10000
+$ nohup util/main.sh type=remote5 server=****.net port=10000 > log.txt &
 ```
 
 
