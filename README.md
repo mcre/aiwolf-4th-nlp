@@ -6,23 +6,23 @@
 ## プログラム解説
 
 * [第3回出場エージェント](https://github.com/mcre/aiwolf-3rd-nlp) をベースにしています。
-* 更新したら記載予定
+* docker上で動作するように修正しました。具体的手順は ```doc/cloud_memo.md``` に記載
 
 ## 動作環境
 
-* macOS (High Sierra)
-* jdk (8)
+* https://hub.docker.com/r/mcre/java10-juman-knp/
+* jdk (10)
 
 ### OSにインストールするもの
 
 * juman (7.01)
   + ```dic/makedic.sh```を参考に辞書をコンパイルしてください
-  + [このへん](http://d.hatena.ne.jp/knaka20blue/20110320/1300627864)を参考に```~/.jumanrc```に```dic```(フルパスで)を設定してください。
-  + インストール先が```/usr/local/bin/juman```ではない場合はClauseクラスから呼んでいるKNPのコンストラクタの記載を変更する必要があります。
+  + [このへん](http://d.hatena.ne.jp/knaka20blue/20110320/1300627864)を参考に```~/.jumanrc等```に```dic```(フルパスで)を設定してください。
+  + インストール先が```/usr/local/bin/juman```ではない場合はClauseクラスから呼んでいるKNPのコンストラクタの記載を変更する必要があるかもしれません(Pathが通ってれば大丈夫かも？？)。
   + (スペックによると思いますが)juman++だと動作が遅くて応答制限時間を満たさない場合があるので、jumanのほうが良いと思います。
 
 * knp (4.16)
-  + インストール先が```/usr/local/bin/knp```ではない場合はClauseクラスから呼んでいるKNPのコンストラクタの記載を変更する必要があります。
+  + インストール先が```/usr/local/bin/knp```ではない場合はClauseクラスから呼んでいるKNPのコンストラクタの記載を変更する必要があるかもしれません。
 
 ### 必要ライブラリ等
 
@@ -45,7 +45,7 @@
 
 * mainメソッドが含まれるクラス
   + net.mchs_u.mc.aiwolf.nlp.starter.Main
-    - サーバとクライアント5体が一発で起動します
+    - コマンドライン引数なしの場合サーバとクライアント5体がローカル上で起動します
   + net.mchs_u.mc.aiwolf.nlp.chaser.Clause
     - 文章を解析してClauseクラスに格納された結果を確認できます
   + net.mchs_u.mc.aiwolf.nlp.util.KNPChecker
