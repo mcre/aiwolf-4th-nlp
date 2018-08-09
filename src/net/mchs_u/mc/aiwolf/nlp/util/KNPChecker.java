@@ -162,14 +162,14 @@ public class KNPChecker {
 	}
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		//String talk = "太郎と二郎と三郎と四郎は楽しくて嬉しい";
-		//String talk = "私の彼の頭は禿げています";
-		String talk = "私は人狼ではありません";
+		String talk = args[0];
 		
+		System.out.println(talk);
+		System.out.println("\n== detail ==========");
 		detail(talk);
-		System.out.println("---------");
+		System.out.println("\n== verySimple ==========");
 		verySimple(talk);
-		System.out.println("---------");
+		System.out.println("\n== clause ==========");
 		for(Clause c: Clause.createClauses(talk))
 			System.out.println(c);
 	}
