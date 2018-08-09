@@ -13,7 +13,14 @@ import net.mchs_u.mc.aiwolf.nlp.chaser.Clause;
 public class KNPChecker {
 	
 	public static void detail(String text) throws IOException, InterruptedException {
-		KNP knp = new KNP();
+		String pathJuman = System.getenv("PathJuman");
+		String pathKNP = System.getenv("PathKNP");
+		KNP knp = null;
+		if(pathJuman == null || pathKNP == null)
+			knp = new KNP();
+		else
+			knp = new KNP("/bin/sh", pathJuman, pathKNP);
+
 		ObjectNode root = knp.parse(text);
 		JsonNode view = root.get("clauseas");
 
