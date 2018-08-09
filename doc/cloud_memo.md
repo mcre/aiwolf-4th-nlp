@@ -52,19 +52,37 @@ $ sudo docker cp ~/lib.zip aiwolf:/root/lib.zip
 $ sudo docker exec -it aiwolf bash
 $ git clone https://github.com/mcre/aiwolf-4th-nlp.git
 $ unzip -d ~/aiwolf-4th-nlp/lib/ ~/lib.zip
-$ # 辞書のコンパイル
-$ cd ~/aiwolf-4th-nlp/dic
-$ ./makedic.sh
 $ # 辞書の設定
 $ nano ~/usr/etc/jumanrc
-$ # 「辞書ファイル」に`/root/aiwolf-4th-nlp/dic`を追加
+$ ## 「辞書ファイル」に`/root/aiwolf-4th-nlp/dic`を追加
+$ # jumanとknpの環境変数の設定
+$ touch ~/.bash_profile
+$ echo 'export PathJuman=/root/usr/bin/juman' >>~/.bash_profile
+$ echo 'export PathKNP=/root/usr/bin/knp' >>~/.bash_profile
+$ source ~/.bash_profile
 ```
 
 ## 6. 実行
 
+* 辞書変更時
+
+```
+$ cd ~/aiwolf-4th-nlp/dic
+$ ./makedic.sh
+```
+
+* ソースコード変更時
+
 ```
 $ cd ~/aiwolf-4th-nlp/
+$ git pull
 $ util/compile.sh
+```
+
+* 実行例
+
+```
+$ cd ~/aiwolf-4th-nlp/
 $ util/main.sh
 $ util/main.sh type=remote5 server=****.net port=10000
 ```
