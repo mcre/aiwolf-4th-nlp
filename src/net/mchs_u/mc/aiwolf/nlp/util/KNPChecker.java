@@ -12,7 +12,7 @@ import net.mchs_u.mc.aiwolf.nlp.chaser.Clause;
 
 public class KNPChecker {
 	
-	public static void detail(String text) throws IOException, InterruptedException {
+	public static KNP createKNP() {
 		String pathJuman = System.getenv("PathJuman");
 		String pathKNP = System.getenv("PathKNP");
 		KNP knp = null;
@@ -20,6 +20,11 @@ public class KNPChecker {
 			knp = new KNP();
 		else
 			knp = new KNP("/bin/sh", pathJuman, pathKNP);
+		return knp;
+	}
+	
+	public static void detail(String text) throws IOException, InterruptedException {
+		KNP knp = createKNP();
 
 		ObjectNode root = knp.parse(text);
 		JsonNode view = root.get("clauseas");
@@ -64,7 +69,7 @@ public class KNPChecker {
 	}
 
 	public static void simple(String text) throws IOException, InterruptedException {
-		KNP knp = new KNP();
+		KNP knp = createKNP();
 		ObjectNode root = knp.parse(text);
 		JsonNode view = root.get("clauseas");
 
@@ -145,7 +150,7 @@ public class KNPChecker {
 	}
 	
 	public static void verySimple(String text) throws IOException, InterruptedException {
-		KNP knp = new KNP();
+		KNP knp = createKNP();
 		ObjectNode root = knp.parse(text);
 		JsonNode clauses = root.get("clauseas");
 
