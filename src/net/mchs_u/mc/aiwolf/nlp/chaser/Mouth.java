@@ -61,6 +61,8 @@ public class Mouth {
 			return Talk.OVER;
 		}
 
+		String ret = null;
+		List<String> tmp = new ArrayList<String>();
 		Agent t = content.getTarget();
 		switch (content.getTopic()) {
 		case OVER:
@@ -71,25 +73,40 @@ public class Mouth {
 			if(!content.getTarget().equals(gameInfo.getAgent()))
 				return Talk.SKIP;
 			if(content.getRole() == Role.WEREWOLF) {
-				if(getEstimate().isPowerPlay()) // もうPPされてる場合
-					return r("わおーん、<僕>は人狼だ<よ>。");
-				else // PP発動する場合
-					return r("もう<僕>たちのほうが多いよう<だね>。わおーん、<僕>は人狼だ<よ>。");
+				if(getEstimate().isPowerPlay()) { // もうPPされてる場合
+					tmp.clear();
+					tmp.add(r("わおーん、<僕>が人狼だ<よ>。"));
+					tmp.add(r("ふふふ、<僕>が人狼だ<よ>。"));
+					tmp.add(r("ありがとう、<僕>が人狼だ<よ>。"));
+					ret = rnd(tmp, 3);
+					if(ret != null) return ret;
+				} else { // PP発動する場合
+					tmp.clear();
+					tmp.add(r("もう<僕>たちのほうが多いよう<だね>。わおーん、<僕>が人狼だ<よ>。"));
+					tmp.add(r("もう<僕>たちのほうが多いよう<だね>。ふふふ、<僕>が人狼だ<よ>。"));
+					ret = rnd(tmp, 2);
+					if(ret != null) return ret;
+				}
 			}
 			if(content.getRole() == Role.POSSESSED) {
-				return r("ふふふふ、<僕>が狂人だ<よ>！");
+				tmp.clear();
+				tmp.add(r("ふふふふ、<僕>が狂人だ<よ>！"));
+				tmp.add(r("あはははは！　<僕>が狂人だ<よ>！"));
+				ret = rnd(tmp, 2);
+				if(ret != null) return ret;
 			}
 			return r("<僕>は" + Transrater.roleToString(content.getRole()) + "だ<よ>。");
 		case DIVINED:
 			String r = Transrater.speciesToString(content.getResult());
 			t = content.getTarget();
-			switch ((int)(Math.random() * 5)) {
-			case 0: return r(t + "<さん>の占い結果は、" + r + "だった<よ>。");
-			case 1: return r(t + "<さん>の占いの結果は、" + r + "だった<よ>。");
-			case 2: return r(t + "<さん>を占ったら、" + r + "だった<よ>。");
-			case 3: return r(t + "<さん>を占った結果は、" + r + "だった<よ>。");
-			case 4: return r("昨日の占い結果だ<よ>、" + t + "<さん>は" + r + "だった<よ>。");
-			}
+			tmp.clear();
+			tmp.add(r(t + "<さん>の占い結果は、" + r + "だった<よ>。"));
+			tmp.add(r(t + "<さん>の占いの結果は、" + r + "だった<よ>。"));
+			tmp.add(r(t + "<さん>を占ったら、" + r + "だった<よ>。"));
+			tmp.add(r(t + "<さん>を占った結果は、" + r + "だった<よ>。"));
+			tmp.add(r("昨日の占い結果だ<よ>、" + t + "<さん>は" + r + "だった<よ>。"));
+			ret = rnd(tmp, 5);
+			if(ret != null) return ret;
 		case IDENTIFIED:
 			return r(content.getTarget() + "<さん>の霊能結果は、" + Transrater.speciesToString(content.getResult()) + "だった<よ>。");
 		case OPERATOR:
@@ -109,19 +126,17 @@ public class Mouth {
 				Agent bak = targetOfVotingDeclarationToday;
 				targetOfVotingDeclarationToday = t;
 				if(bak == null || bak == t) {
-					switch ((int)(Math.random() * 2)) {
-					case 0:
-						return r(t + "<さん>があやしいと思うから投票する<よ>。");
-					case 1:
-						return r(t + "<さん>が人狼だと思うから投票する<よ>。");
-					}
+					tmp.clear();
+					tmp.add(r(t + "<さん>があやしいと思うから投票する<よ>。"));
+					tmp.add(r(t + "<さん>が人狼だと思うから投票する<よ>。"));
+					ret = rnd(tmp, 2);
+					if(ret != null) return ret;
 				} else {
-					switch ((int)(Math.random() * 2)) {
-					case 0:
-						return r("さっきと状況が変わったから、やっぱり" + t + "<さん>に投票する<よ>。");
-					case 1:
-						return r("やっぱり" + t + "<さん>が人狼だと思う。投票する<よ>。");
-					}
+					tmp.clear();
+					tmp.add(r("さっきと状況が変わったから、やっぱり" + t + "<さん>に投票する<よ>。"));
+					tmp.add(r("やっぱり" + t + "<さん>が人狼だと思う。投票する<よ>。"));
+					ret = rnd(tmp, 2);
+					if(ret != null) return ret;
 				}
 			}
 			firstVoted = true;
@@ -195,16 +210,39 @@ public class Mouth {
 		return ret;
 	}
 
-	private String skipTalk(GameInfo gameInfo, Collection<String> answers) {		
+	private String skipTalk(GameInfo gameInfo, Collection<String> answers) {
+		String ret = null;
+		List<String> tmp = new ArrayList<String>();
+		
 		if(getEstimate().isPowerPlay()) { // PPモード 
 			if(!talkedSet.contains("パワープレイ反応")){
 				talkedSet.add("パワープレイ反応");
 				if(gameInfo.getRole() == Role.WEREWOLF) { // 人狼
-					return r("食べちゃう<よ>ー！");
+					tmp.clear();
+					tmp.add(r("食べちゃう<よ>ー！"));
+					tmp.add(r("逃げても無駄だ<よ>！"));
+					tmp.add(r("狂人<さん>、うまくやった<よ>！"));
+					tmp.add(r("美味しい人間が食べたい<よ>！"));
+					ret = rnd(tmp, 4);
+					if(ret != null) return ret;
 				} else if(gameInfo.getRole() == Role.POSSESSED) { // 狂人
-					return "うひゃひゃひゃひゃひゃひゃひゃ！";
+					tmp.clear();
+					tmp.add(r("うひゃひゃひゃひゃひゃひゃひゃ！"));
+					tmp.add(r("みんな死んじゃえ！"));
+					tmp.add(r("人狼様！ <僕>を食べてください！"));
+					tmp.add(r("これで人狼様の世界だ<よ>！"));
+					tmp.add(r("人間なんて滅びればいいんだ<よ>！"));
+					ret = rnd(tmp, 5);
+					if(ret != null) return ret;
 				} else { // 村人チーム
-					return "え！　助けて！";
+					tmp.clear();
+					tmp.add(r("え！　助けて！"));
+					tmp.add(r("もう終わりだ<よ>……。"));
+					tmp.add(r("信じられない<よ>……。"));
+					tmp.add(r("逃げるしかない！"));
+					tmp.add(r("もう手はない<かな>……。"));
+					ret = rnd(tmp, 5);
+					if(ret != null) return ret;
 				}
 			}
 			return Talk.SKIP;
@@ -214,10 +252,11 @@ public class Mouth {
 		if(gameInfo.getLastDeadAgentList().size() > 0 && gameInfo.getDay() == 2) { // 2日目で襲撃死した人がいる場合
 			if(!talkedSet.contains("襲撃反応")){
 				talkedSet.add("襲撃反応");
-				switch ((int)(Math.random() * 5)) {
-				case 0: return "本当に襲われるなんて。";
-				case 1: return r(gameInfo.getLastDeadAgentList().get(0) + "<さん>が死ん<じゃった>。");
-				}
+				tmp.clear();
+				tmp.add(r("本当に襲われるなんて。"));
+				tmp.add(r(gameInfo.getLastDeadAgentList().get(0) + "<さん>が死ん<じゃった>……。"));
+				ret = rnd(tmp, 5);
+				if(ret != null) return ret;
 			}
 		}
 
@@ -229,21 +268,23 @@ public class Mouth {
 					coSeers.remove(gameInfo.getAgent());
 					Agent t = (Agent)coSeers.toArray()[0];
 
-					switch ((int)(Math.random() * 6)) {
-					case 0: return r(t + "<さん>は嘘をついて<います>！　<僕>が本当の占い師<です>！");
-					case 1: return r(t + "<さん>は偽物<です>！　<僕>こそが本当の占い師<です>！");
-					case 2: return r(">>" + t + " " + t + "<さん>、<あなた>が人狼<なのですか>！？");
-					case 3: return r(">>" + t + " " + t + "<さん>、<あなた>は狂人<なのですか>！？");
-					}
+					tmp.clear();
+					tmp.add(r(t + "<さん>は嘘をついて<います>！　<僕>が本当の占い師<です>！"));
+					tmp.add(r(t + "<さん>は偽物<です>！　<僕>こそが本当の占い師<です>！"));
+					tmp.add(r(">>" + t + " " + t + "<さん>、<僕>が占い師<です>！　<あなた>は人狼<なのですか>！？"));
+					tmp.add(r(">>" + t + " " + t + "<さん>、<僕>が占い師<です>！　<あなた>は狂人<なのですか>！？"));
+					ret = rnd(tmp, 6);
+					if(ret != null) return ret;
 				}
 			}
 		} else {
 			if(getEstimate().getCoSet(Role.SEER).size() == 2) { //二人COしているとき
 				if(!talkedSet.contains("二人占い師反応")){
 					talkedSet.add("二人占い師反応");
-					switch ((int)(Math.random() * 5)) {
-					case 0: return "どっちが本当の占い師なんだろう。";
-					}
+					tmp.clear();
+					tmp.add("どっちが本当の占い師なんだろう。");
+					ret = rnd(tmp, 5);
+					if(ret != null) return ret;
 				}
 			}
 		}
@@ -262,7 +303,7 @@ public class Mouth {
 			}
 		}
 		
-		// 8ターン目以降(7ターン目を読み込んでいる時)はここより下の発言を抑制
+		// 8ターン目以降(7ターン目を読み込んでいる時)はここより下の発言を抑制 -------------
 		
 		int talkSize = gameInfo.getTalkList().size();
 		if(talkSize > 0)
@@ -298,17 +339,26 @@ public class Mouth {
 			as.remove(gameInfo.getAgent());
 			Collections.shuffle(as);
 			Agent a = as.get(0);
-			switch ((int)(Math.random() * 10)) {
-			case 0: return r(">>" + a + " " + a + "<さん>、<あなた>は誰が人狼だと<思いますか>？");
-			//case 1: return r(">>" + a + " " + a + "<さん>、<あなた>は誰が狂人だと<思いますか>？");
-			//case 2: return r(">>" + a + " " + a + "<さん>、<あなた>は誰が村人だと<思いますか>？");
-			}
+			tmp.clear();
+			tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が人狼だと<思いますか>？"));
+			//tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が狂人だと<思いますか>？"));
+			//tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が村人だと<思いますか>？"));
+			ret = rnd(tmp, 10);
+			if(ret != null) return ret;
 		}
 
 		return Talk.SKIP;
 	}
 	
-	private String r(String s) { // replace
+	// ランダムで発言を返す。乱数10, 発言パターン3の場合、7割の確率でnullを返すので、確率で発言させることもできる
+	private String rnd(List<String> talkCandidates, int numOfRandomPatterns) {
+		int random = (int)(Math.random() * numOfRandomPatterns);
+		if(random >= talkCandidates.size())
+			return null;
+		return talkCandidates.get(random);
+	}
+	
+	private String r(String s) { // replaceの略, キャラクターごとの発言に置換するだけ
 		String ret = s;
 		for(String key: characterMap.keySet())
 			ret = ret.replace("<" + key + ">", characterMap.get(key));

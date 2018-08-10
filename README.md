@@ -7,6 +7,7 @@
 
 * [第3回出場エージェント](https://github.com/mcre/aiwolf-3rd-nlp) をベースにしています。
 * docker上で動作するように修正しました。具体的手順は ```doc/cloud_memo.md``` に記載
+* PP時の発話パターンを増やしました。
 
 ## 動作環境
 

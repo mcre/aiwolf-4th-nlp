@@ -27,10 +27,6 @@ import org.aiwolf.common.net.GameInfo;
 
 import net.mchs_u.mc.aiwolf.dokin.McrePlayer;
 
-// TODO 5人人狼以外も考慮する場合
-// 霊能結果認識の実装
-// Whisperの実装
-// TODO １発言で２内容来た場合片方しか対応できない（占COと同時に占い結果言う場合とか）。2文も多分うまくいかないと思う。
 public class Ear{
 	private static final String DAT_FILE = "dic/translatedMap.dat";
 
