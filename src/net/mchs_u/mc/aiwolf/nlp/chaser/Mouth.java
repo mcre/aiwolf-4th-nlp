@@ -75,15 +75,15 @@ public class Mouth {
 			if(content.getRole() == Role.WEREWOLF) {
 				if(getEstimate().isPowerPlay()) { // もうPPされてる場合
 					tmp.clear();
-					tmp.add(r("わおーん、<僕>が人狼だ<よ>。"));
-					tmp.add(r("ふふふ、<僕>が人狼だ<よ>。"));
-					tmp.add(r("ありがとう、<僕>が人狼だ<よ>。"));
+					tmp.add(r("わおーん、<僕>は人狼だ<よ>。"));
+					tmp.add(r("ふふふ、<僕>は人狼だ<よ>。"));
+					tmp.add(r("ありがとう、<僕>は人狼だ<よ>。"));
 					ret = rnd(tmp, 3);
 					if(ret != null) return ret;
 				} else { // PP発動する場合
 					tmp.clear();
-					tmp.add(r("もう<僕>たちのほうが多いよう<だね>。わおーん、<僕>が人狼だ<よ>。"));
-					tmp.add(r("もう<僕>たちのほうが多いよう<だね>。ふふふ、<僕>が人狼だ<よ>。"));
+					tmp.add(r("もう<僕>たちのほうが多いよう<だね>。わおーん、<僕>は人狼だ<よ>。"));
+					tmp.add(r("もう<僕>たちのほうが多いよう<だね>。ふふふ、<僕>は人狼だ<よ>。"));
 					ret = rnd(tmp, 2);
 					if(ret != null) return ret;
 				}
@@ -271,7 +271,7 @@ public class Mouth {
 					tmp.clear();
 					tmp.add(r(t + "<さん>は嘘をついて<います>！　<僕>が本当の占い師<です>！"));
 					tmp.add(r(t + "<さん>は偽物<です>！　<僕>こそが本当の占い師<です>！"));
-					tmp.add(r(">>" + t + " " + t + "<さん>、<僕>が占い師<です>！　<あなた>は人狼<なのですか>！？"));
+					tmp.add(r(">>" + t + " " + t + "<さん>、<僕>が占い師<です>！　<あなた>が人狼<なのですか>！？"));
 					tmp.add(r(">>" + t + " " + t + "<さん>、<僕>が占い師<です>！　<あなた>は狂人<なのですか>！？"));
 					ret = rnd(tmp, 6);
 					if(ret != null) return ret;
