@@ -121,7 +121,8 @@ public class Ear{
 			if(!roleClause.isNegative()) {				
 				// ☆役職CO「私は占い師です」
 				tmp = roleClause.getKakuMap().get("ガ");
-				if(tmp != null && tmp.getAttributes().contains("一人称")) {
+				if(tmp != null && tmp.getAttributes().contains("一人称") &&
+						!roleClause.getModalities().contains("疑問")) {
 					switch (roleClause.getAiwolfWordMeaning()) {
 					case "占い師":	contents.add(new Content(new ComingoutContentBuilder(talker, Role.SEER))); break;
 					case "人狼":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.WEREWOLF))); break;
