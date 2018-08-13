@@ -2,6 +2,7 @@
 /bin/
 /lib/
 /log/
+/serverLog/
 /result/
 /misc/
 translatedMap.dat

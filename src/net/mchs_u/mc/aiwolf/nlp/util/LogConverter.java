@@ -145,15 +145,15 @@ public class LogConverter {
 		String[] files = logDir.list(new FilenameFilter(){
 			@Override
 			public boolean accept(File dir, String name) {
-				if(name.length() != 17)
+				if(name.length() != 17 && name.length() != 24)
 					return false;
-				return name.compareTo("1488817914283.txt") > 0;
+				return true;
 			}
 		});
 		Arrays.sort(files);
 		for(String file: files) {
 			String s = (new LogConverter(logDir + "/" + file, names)).toString();
-			try(BufferedWriter bw = new BufferedWriter(new FileWriter(logDir + "/" + file.substring(0, 13) + "_c.txt"))) {
+			try(BufferedWriter bw = new BufferedWriter(new FileWriter(logDir + "/" + file.substring(0, file.length()) + "_c.txt"))) {
 				bw.write(s);
 			}
 		}
