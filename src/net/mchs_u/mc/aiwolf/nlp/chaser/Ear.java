@@ -33,6 +33,7 @@ public class Ear{
 	private Map<String, List<String>> translatedMap = null;
 	private Set<String> processedTalks = null; // このゲームで処理済みのtalk
 	private Map<String, String> qas = null; // Mouthに渡すQA集
+	private boolean messageOff = false;
 	
 	@SuppressWarnings("unused")
 	private McrePlayer player = null;
@@ -71,7 +72,8 @@ public class Ear{
 				return ret;
 			}
 			
-			System.out.println("　✩Parse("+ gameInfo.getAgent() +")> " + key);
+			if(!messageOff)
+				System.out.println("　✩Parse("+ gameInfo.getAgent() +")> " + key);
 			
 			String nl = naturalLanguage;
 			
@@ -302,5 +304,9 @@ public class Ear{
 
 	public void save() {
 		save(translatedMap);
+	}
+	
+	public void setMessageOff(boolean messageOff) {
+		this.messageOff = messageOff;
 	}
 }
