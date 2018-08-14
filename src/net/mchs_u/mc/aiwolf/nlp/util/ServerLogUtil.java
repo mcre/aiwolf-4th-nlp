@@ -83,7 +83,7 @@ public class ServerLogUtil {
 		return list;
 	}
 	
-	private static List<String> naturalLanguageToProtocol(String naturalLanguage) {
+	public static List<String> naturalLanguageToProtocol(String naturalLanguage) {
 		Ear ear = new Ear(new net.mchs_u.mc.aiwolf.dokin.McrePlayer());
 		ear.initialize();
 		ear.setMessageOff(true);

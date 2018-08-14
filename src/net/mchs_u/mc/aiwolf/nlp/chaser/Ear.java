@@ -79,8 +79,7 @@ public class Ear{
 			
 			nl = nl.replaceFirst("^>>Agent\\[..\\] ", "");
 			nl = hankakuToZenkaku(nl);
-			nl = nl.replace("ぼく占い師", "ぼくは占い師"); // 特殊な言い回しの置換
-			nl = nl.replace("］の結果", "］の占い結果"); // 特殊な言い回しの置換
+			nl = replaceSpecificWording(nl);
 			
 			List<String> contents = talkToContents(gameInfo, talker, questionTo, key, Clause.createClauses(nl));
 			if(contents == null)
@@ -94,6 +93,19 @@ public class Ear{
 		processedTalks.add(key);
 		translatedMap.put(key, ret);
 		return ret;
+	}
+	
+	// Jumanに直接いれられない特殊な言い回しを置換する
+	private static String replaceSpecificWording(String nl) {
+		String tmp = nl;
+		tmp = tmp.replace("ぼく占", "ぼくは占");
+		tmp = tmp.replace("ボク占", "ボクは占");
+		tmp = tmp.replace("］の結果", "］の占い結果");
+		tmp = tmp.replace("人狼じゃ", "人狼だ");
+		tmp = tmp.replace("狂人じゃ", "狂人だ");
+		tmp = tmp.replace("人間じゃ", "人間だ");
+		tmp = tmp.replace("師じゃ", "師だ");
+		return tmp;
 	}
 	
 	private List<String> talkToContents(GameInfo gameInfo, Agent talker, Agent questionTo, String key, List<Clause> clauses) {
@@ -129,7 +141,7 @@ public class Ear{
 					case "占い師":	contents.add(new Content(new ComingoutContentBuilder(talker, Role.SEER))); break;
 					case "人狼":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.WEREWOLF))); break;
 					case "狂人":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.POSSESSED))); break;
-					case "人間":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.VILLAGER))); break;
+					//case "人間":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.VILLAGER))); break;
 					}
 				}
 				
