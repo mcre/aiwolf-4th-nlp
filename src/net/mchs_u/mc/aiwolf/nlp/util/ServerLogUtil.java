@@ -86,6 +86,7 @@ public class ServerLogUtil {
 	public static List<String> naturalLanguageToProtocol(String naturalLanguage) {
 		Ear ear = new Ear(new net.mchs_u.mc.aiwolf.dokin.McrePlayer());
 		ear.initialize();
+		ear.dayStart();
 		ear.setMessageOff(true);
 		
 		GameInfo gameInfo = new GameInfo(){ public Agent getAgent() {return Agent.getAgent(1);}};
@@ -118,7 +119,7 @@ public class ServerLogUtil {
 		
 		for(String nl: getTalkList()) {
 			System.out.println(nl);
-			String protocol = naturalLanguageToProtocol(nl).toString().replace("[]", "[Skip]");
+			String protocol = naturalLanguageToProtocol(nl).toString();
 			if(!answer.containsKey(nl)) {
 				ukCount++;
 				ukList.add(nl + "\t" + protocol + "\t");

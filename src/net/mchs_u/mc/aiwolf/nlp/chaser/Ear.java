@@ -81,12 +81,17 @@ public class Ear{
 			nl = hankakuToZenkaku(nl);
 			nl = replaceSpecificWording(nl);
 			
-			List<String> contents = talkToContents(gameInfo, talker, questionTo, key, Clause.createClauses(nl));
-			if(contents == null)
+			String[] nlSentences = nl.split("(?<=[！？。　]++)"); // 文に分解
+			
+			for(String nlSentence: nlSentences)
+				ret.addAll(talkToContents(gameInfo, talker, questionTo, key, Clause.createClauses(nlSentence)));
+			
+			ret = new ArrayList<String>(new LinkedHashSet<>(ret)); // 重複削除
+			
+			if(ret.size() < 1)
 				ret.add(Talk.SKIP);
-			else
-				ret = contents;
 		} catch(Exception e) {
+			e.printStackTrace();
 			ret.add(Talk.SKIP);
 		}
 		
@@ -228,7 +233,7 @@ public class Ear{
 							qas.put(key, ">>" + talker + " " + talker + "<さん>、その質問はちょっとわからない<よ>。");
 						}
 					} if(roleClause.getAiwolfWordMeaning().equals("狂人")) {
-						String main = roleClause.getKakuMap().get("ガ").getMain();
+						String main = roleClause.getKakuMap().get("ガ").getMain(); // TODO 「>>Agent[01] Agent[01]を狂人だと思うの？んーどうだろう。 」でエラーが出るので確認
 						if(main.equals("君") || main.equals("おまえ") || main.equals("キミ") || main.equals("あなた") || main.equals("御前")) { // あなたが狂人なんでしょう？, あなたが狂人なんですか！？
 							qas.put(key, ">>" + talker + " " + talker + "<さん>、<僕>は狂人じゃない<よ>。");
 							break;
@@ -254,7 +259,7 @@ public class Ear{
 			ret.add(content.getText());
 		}
 		
-		return new ArrayList<String>(new LinkedHashSet<>(ret)); // 重複削除
+		return ret;
 	}
 	
 	public List<String> toProtocolsForWhisper(GameInfo gameInfo, Agent talker, String naturalLanguage) {
@@ -278,7 +283,10 @@ public class Ear{
 				sb.setCharAt(i, '、');
 			if (c == '　')
 				sb.setCharAt(i, '、');
-			
+			if (c == '?')
+				sb.setCharAt(i, '？');
+			if (c == '!')
+				sb.setCharAt(i, '！');
 		}
 		value = sb.toString();
 		return value;
