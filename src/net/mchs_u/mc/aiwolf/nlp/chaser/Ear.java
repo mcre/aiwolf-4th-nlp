@@ -123,9 +123,13 @@ public class Ear{
 		List<Content> contents = new ArrayList<>();
 				
 		for(Clause roleCoClause: roleCoClauses) {
+			if(questionTo != null) // 問いかけの場合はスキップ
+				break;
 			if(!roleCoClause.isNegative()) {
 				// ☆役職CO「占い師COします」
-				if(roleCoClause.getAttributes().contains("動態述語")) {
+				if(roleCoClause.getAttributes().contains("動態述語") &&
+						roleCoClause.getChild() == null && // この単語がなにかに係っているものを回避することで「占い師COしている人は・・・」などを除く
+						roleCoClause.getKakuMap().size() < 1) { // ↑と同様
 					switch (roleCoClause.getAiwolfWordMeaning()) {
 					case "占い師":	contents.add(new Content(new ComingoutContentBuilder(talker, Role.SEER))); break;
 					case "人狼":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.WEREWOLF))); break;
@@ -137,6 +141,9 @@ public class Ear{
 		}
 		
 		for(Clause roleClause: roleClauses) {
+			if(questionTo != null) // 問いかけの場合はスキップ
+				break;
+			
 			if(!roleClause.isNegative()) {				
 				// ☆役職CO「私は占い師です」
 				tmp = roleClause.getKakuMap().get("ガ");
@@ -146,7 +153,7 @@ public class Ear{
 					case "占い師":	contents.add(new Content(new ComingoutContentBuilder(talker, Role.SEER))); break;
 					case "人狼":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.WEREWOLF))); break;
 					case "狂人":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.POSSESSED))); break;
-					//case "人間":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.VILLAGER))); break;
+					//case "人間":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.VILLAGER))); break; //私は人間です、は村人COというには弱いので消す
 					}
 				}
 				
@@ -167,6 +174,8 @@ public class Ear{
 		}
 		
 		for(Clause playerClause: playerClauses) {
+			if(questionTo != null) // 問いかけの場合はスキップ
+				break;
 			for(Clause roleClause: roleClauses) {
 				for(Clause actionClause: actionClauses) {
 					if(
@@ -218,7 +227,6 @@ public class Ear{
 				qas.put(key, ">>" + talker + " " + talker + "<さん>、うーん、そのお願いはどうしようかな。");
 			}
 			
-			// 2文のときにうまく対応できないかも(そのうちちゃんと調べたい)
 			if(Clause.findModalityClauses(clauses, "疑問").size() > 0) {
 				for(Clause roleClause: roleClauses) {
 					if(roleClause.getAiwolfWordMeaning().equals("人狼")) {
