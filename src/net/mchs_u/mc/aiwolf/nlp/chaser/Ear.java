@@ -85,7 +85,7 @@ public class Ear{
 			String[] nlSentences = nl.split("(?<=[！？。　]++)"); // 文に分解
 			
 			for(String nlSentence: nlSentences)
-				ret.addAll(talkToContents(gameInfo, talker, questionTo, key, Clause.createClauses(nlSentence)));
+				ret.addAll(talkToContents(gameInfo, talker, questionTo, key, Clause.createClauses(nlSentence), nl));
 			
 			ret = new ArrayList<String>(new LinkedHashSet<>(ret)); // 重複削除
 			Collections.sort(ret); // COMINGOUTを優先にしたいので文字列でソート
@@ -102,7 +102,7 @@ public class Ear{
 		return ret;
 	}
 	
-	// Jumanに直接いれられない特殊な言い回しを置換する
+	// Jumanに直接いれられない特殊な言い回し等を置換する
 	private static String replaceSpecificWording(String nl) {
 		String tmp = nl;
 		tmp = tmp.replace("ぼく占", "ぼくは占");
@@ -121,10 +121,12 @@ public class Ear{
 		tmp = tmp.replace("狂人じゃ", "狂人だ");
 		tmp = tmp.replace("人間じゃ", "人間だ");
 		tmp = tmp.replace("師じゃ", "師だ");
+		tmp = tmp.replace("って言っておく", "です"); // 横着
+		tmp = tmp.replace("僕視点では", ""); // 横着
 		return tmp;
 	}
 	
-	private List<String> talkToContents(GameInfo gameInfo, Agent talker, Agent questionTo, String key, List<Clause> clauses) {
+	private List<String> talkToContents(GameInfo gameInfo, Agent talker, Agent questionTo, String key, List<Clause> clauses, String fullTalk) throws IOException, InterruptedException {
 		List<Clause> roleClauses   = Clause.findAiwolfTypeClauses(clauses, "役職");
 		List<Clause> roleCoClauses = Clause.findAiwolfTypeClauses(clauses, "役職CO");
 		List<Clause> actionClauses = Clause.findAiwolfTypeClauses(clauses, "行為");
@@ -181,6 +183,29 @@ public class Ear{
 					switch (roleClause.getAiwolfWordMeaning()) {
 					case "人狼":	contents.add(new Content(new DivinedResultContentBuilder(target, Species.WEREWOLF))); break;
 					case "人間":	contents.add(new Content(new DivinedResultContentBuilder(target, Species.HUMAN))); break;
+					}
+				}
+				
+				// ☆占い結果「Agent[04]さんを占いました。結果は人狼です」
+				tmp = roleClause.getKakuMap().get("ガ");
+				if(tmp != null && tmp.getMain().equals("結果") &&
+						!roleClause.getModalities().contains("疑問")) {
+					List<Clause> fullTalkClauses = Clause.createClauses(fullTalk); // プレイヤー名は対象文の外にあるのでここで改めて全文にKNPをかける
+					List<Clause> fullTalkActionClauses = Clause.findAiwolfTypeClauses(fullTalkClauses, "行為");
+					for(Clause ftActionClause: fullTalkActionClauses) {
+						if(ftActionClause.isNegative())
+							continue;
+						if(!ftActionClause.getAiwolfWordMeaning().equals("占い"))
+							continue;
+						Clause c = ftActionClause.getKakuMap().get("ヲ");
+						if(c != null && c.getAiwolfWordType().equals("プレイヤー")) {
+							Agent target = Agent.getAgent(Integer.parseInt(c.getAiwolfWordMeaning()));
+							switch (roleClause.getAiwolfWordMeaning()) {
+							case "人狼":	contents.add(new Content(new DivinedResultContentBuilder(target, Species.WEREWOLF))); break;
+							case "人間":	contents.add(new Content(new DivinedResultContentBuilder(target, Species.HUMAN))); break;
+							}
+							break;
+						}
 					}
 				}
 			}
