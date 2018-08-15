@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,7 +27,8 @@ import net.mchs_u.mc.aiwolf.nlp.chaser.Ear;
 public class ServerLogUtil {
 	private static final String SERVER_LOG_DIR = "serverLog/";
 	private static final String SERVER_LOG_INVESTIGATION_DIR = "serverLogInvestigation/";
-	private static final String ANSWER_FILE = SERVER_LOG_INVESTIGATION_DIR + "answer.tsv";
+	private static final String TO_PROTOCOL_ANSWER_FILE = SERVER_LOG_INVESTIGATION_DIR + "to_protocol_answer.tsv";
+	private static final String TO_ANSWER_ANSWER_FILE = SERVER_LOG_INVESTIGATION_DIR + "to_answer_answer.tsv";
 
 	private static String downloadString(String url) {
 		StringBuilder ret = new StringBuilder();
@@ -83,16 +85,27 @@ public class ServerLogUtil {
 		return list;
 	}
 	
-	public static List<String> naturalLanguageToProtocol(String naturalLanguage) {
+	private static Ear initializeEar() {
 		Ear ear = new Ear(new net.mchs_u.mc.aiwolf.dokin.McrePlayer());
 		ear.initialize();
 		ear.dayStart();
 		ear.setMessageOff(true);
-		
+		return ear;
+	}
+
+	public static List<String> naturalLanguageToProtocol(String naturalLanguage) {
+		Ear ear = initializeEar();
 		GameInfo gameInfo = new GameInfo(){ public Agent getAgent() {return Agent.getAgent(1);}};
 		return ear.toProtocolsForTalk(gameInfo, Agent.getAgent(99), naturalLanguage);
 	}
-		
+
+	public static Collection<String> naturalLanguageToAnswer(String naturalLanguage) {
+		Ear ear = initializeEar();
+		GameInfo gameInfo = new GameInfo(){ public Agent getAgent() {return Agent.getAgent(1);}};
+		ear.toProtocolsForTalk(gameInfo, Agent.getAgent(99), naturalLanguage);
+		return ear.getAnswers();
+	}
+			
 	private static Map<String, String> loadTsv(String filename) {
 		Map<String, String> ret = new HashMap<String, String>();
 		
@@ -100,7 +113,7 @@ public class ServerLogUtil {
 			String line = null;
 			while ((line = br.readLine()) != null) {
 				String[] columns = line.split("\t");
-				ret.put(columns[0], columns[1].replace("[]", "[Skip]"));
+				ret.put(columns[0], columns[1]);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -108,9 +121,9 @@ public class ServerLogUtil {
 		return ret;
 	}
 	
-	public static void test() {
+	public static void testCommon(String type, String answerPath, String outputPrefix) {
 		(new File(SERVER_LOG_INVESTIGATION_DIR)).mkdir();
-		Map<String, String> answer = loadTsv(ANSWER_FILE);
+		Map<String, String> answer = loadTsv(answerPath);
 		int okCount = 0;
 		int ngCount = 0;
 		int ukCount = 0; //unknown
@@ -118,16 +131,27 @@ public class ServerLogUtil {
 		List<String> ukList = new ArrayList<String>();
 		
 		for(String nl: getTalkList()) {
+			if(type.equals("answer") && !nl.startsWith(">>"))
+				continue;
+			
 			System.out.println(nl);
-			String protocol = naturalLanguageToProtocol(nl).toString();
+			String result = null;
+			switch (type) {
+			case "protocol":
+				result = naturalLanguageToProtocol(nl).toString();
+				break;
+			case "answer":
+				result = naturalLanguageToAnswer(nl).toString();
+				break;
+			}
 			if(!answer.containsKey(nl)) {
 				ukCount++;
-				ukList.add(nl + "\t" + protocol + "\t");
-			} else if (answer.get(nl).equals(protocol)) {
+				ukList.add(nl + "\t" + result + "\t");
+			} else if (answer.get(nl).equals(result)) {
 				okCount++;
 			} else {
 				ngCount++;
-				ngList.add(nl + "\t" + protocol + "\t" + answer.get(nl));
+				ngList.add(nl + "\t" + result + "\t" + answer.get(nl));
 			}
 		}
 		
@@ -136,7 +160,7 @@ public class ServerLogUtil {
 		String result = okCount + "/" + allCount + " " + rate;
 		System.out.println(result);
 		
-		try(BufferedWriter bw = new BufferedWriter(new FileWriter(SERVER_LOG_INVESTIGATION_DIR + "nglist_" + (new Date()).getTime() + ".tsv"))) {
+		try(BufferedWriter bw = new BufferedWriter(new FileWriter(SERVER_LOG_INVESTIGATION_DIR + outputPrefix + (new Date()).getTime() + ".tsv"))) {
 			bw.write(result);
 			bw.newLine();
 			for(String s: ngList) {
@@ -153,10 +177,19 @@ public class ServerLogUtil {
 			e.printStackTrace();
 		}
 	}
-
+	
+	public static void toProtocolTest() {
+		testCommon("protocol", TO_PROTOCOL_ANSWER_FILE, "nglist_");
+	}
+	
+	public static void toAnswerTest() {
+		testCommon("answer", TO_ANSWER_ANSWER_FILE, "nglist_answer_");
+	}
+	
 	public static void main(String[] args) {
 		//downloadServerLogs(args[0]);
-		test();
+		//toProtocolTest();
+		toAnswerTest();
 		//System.out.println(naturalLanguageToProtocol("Agent[01]が追放されたね。Agent[01]が襲われてる！襲撃されたAgent[01]に黒出ししていたAgent[01]は偽物だよ！"));
 	}
 }
