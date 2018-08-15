@@ -281,7 +281,9 @@ public class Ear{
 							qas.put(key, ">>" + talker + " " + talker + "<さん>、その質問はちょっとわからない<よ>。");
 						}
 					} if(roleClause.getAiwolfWordMeaning().equals("狂人")) {
-						String main = roleClause.getKakuMap().get("ガ").getMain(); // TODO 「>>Agent[01] Agent[01]を狂人だと思うの？んーどうだろう。 」でエラーが出るので確認
+						String main = "";
+						if(roleClause.getKakuMap().containsKey("ガ"))
+							main = roleClause.getKakuMap().get("ガ").getMain();
 						if(main.equals("君") || main.equals("おまえ") || main.equals("キミ") || main.equals("あなた") || main.equals("御前")) { // あなたが狂人なんでしょう？, あなたが狂人なんですか！？
 							qas.put(key, ">>" + talker + " " + talker + "<さん>、<僕>は狂人じゃない<よ>。");
 							break;

@@ -70,19 +70,19 @@ $ sudo docker start aiwolf
 $ sudo docker exec -it aiwolf bash
 ```
 
-* 辞書変更時
-
-```
-$ cd ~/aiwolf-4th-nlp/dic
-$ ./makedic.sh
-```
-
 * ソースコード変更時
 
 ```
 $ cd ~/aiwolf-4th-nlp/
 $ git pull
 $ util/compile.sh
+```
+
+* 辞書変更時
+
+```
+$ cd ~/aiwolf-4th-nlp/dic
+$ ./makedic.sh
 ```
 
 * 実行例
