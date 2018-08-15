@@ -157,5 +157,6 @@ public class ServerLogUtil {
 	public static void main(String[] args) {
 		//downloadServerLogs(args[0]);
 		test();
+		//System.out.println(naturalLanguageToProtocol("Agent[01]が追放されたね。Agent[01]が襲われてる！襲撃されたAgent[01]に黒出ししていたAgent[01]は偽物だよ！"));
 	}
 }

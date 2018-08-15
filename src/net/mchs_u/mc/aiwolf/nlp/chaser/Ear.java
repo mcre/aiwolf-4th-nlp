@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -87,6 +88,7 @@ public class Ear{
 				ret.addAll(talkToContents(gameInfo, talker, questionTo, key, Clause.createClauses(nlSentence)));
 			
 			ret = new ArrayList<String>(new LinkedHashSet<>(ret)); // 重複削除
+			Collections.sort(ret); // COMINGOUTを優先にしたいので文字列でソート
 			
 			if(ret.size() < 1)
 				ret.add(Talk.SKIP);
@@ -104,7 +106,16 @@ public class Ear{
 	private static String replaceSpecificWording(String nl) {
 		String tmp = nl;
 		tmp = tmp.replace("ぼく占", "ぼくは占");
+		tmp = tmp.replace("ぼく人", "ぼくは人");
+		tmp = tmp.replace("ぼく狂", "ぼくは狂");
+		tmp = tmp.replace("ぼく実", "ぼくは実");
 		tmp = tmp.replace("ボク占", "ボクは占");
+		tmp = tmp.replace("ボク人", "ボクは人");
+		tmp = tmp.replace("ボク狂", "ボクは狂");
+		tmp = tmp.replace("ボク実", "ボクは実");
+		tmp = tmp.replace("私、", "私は");
+		tmp = tmp.replace("ぼく、", "ぼくは");
+		tmp = tmp.replace("ボク、", "ボクは");
 		tmp = tmp.replace("］の結果", "］の占い結果");
 		tmp = tmp.replace("人狼じゃ", "人狼だ");
 		tmp = tmp.replace("狂人じゃ", "狂人だ");
@@ -148,7 +159,8 @@ public class Ear{
 				// ☆役職CO「私は占い師です」
 				tmp = roleClause.getKakuMap().get("ガ");
 				if(tmp != null && tmp.getAttributes().contains("一人称") &&
-						!roleClause.getModalities().contains("疑問")) {
+						!roleClause.getModalities().contains("疑問") &&
+						!roleClause.getAttributes().contains("節機能-理由")) { // 「私が占い師だから、〜」を回避) {
 					switch (roleClause.getAiwolfWordMeaning()) {
 					case "占い師":	contents.add(new Content(new ComingoutContentBuilder(talker, Role.SEER))); break;
 					case "人狼":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.WEREWOLF))); break;
@@ -161,6 +173,7 @@ public class Ear{
 				tmp = roleClause.getKakuMap().get("ガ");
 				Clause child = roleClause.getChild();
 				if(tmp != null && tmp.getAiwolfWordType() != null && 
+						roleClause.getKakuMap().get("ニ") == null && // 「ガ」と「ニ」が両方係ってる場合の「○○がXXに人狼判定しました」等をスルーする
 						tmp.getAiwolfWordType().equals("プレイヤー") && 
 						!roleClause.getModalities().contains("疑問") &&
 						!(child != null && child.getMain().equals("思う"))) { // 「人狼だと思う」の回避
@@ -173,6 +186,7 @@ public class Ear{
 			}
 		}
 		
+		// ☆占い結果「Agent[04]さんを占ったら人狼でした」
 		for(Clause playerClause: playerClauses) {
 			if(questionTo != null) // 問いかけの場合はスキップ
 				break;
@@ -182,6 +196,7 @@ public class Ear{
 							actionClause.getAiwolfWordMeaning().equals("占い") &&
 							roleClause.getAiwolfWordMeaning().startsWith("人") &&
 							roleClause.getAttributes().contains("状態述語") &&
+							!roleClause.getAttributes().contains("節機能-理由") && // 「占いの結果が人狼だったから、〜」を回避
 							!actionClause.isNegative() && !roleClause.isNegative()) {
 						Agent target = Agent.getAgent(Integer.parseInt(playerClause.getAiwolfWordMeaning()));
 						switch (roleClause.getAiwolfWordMeaning()) {
