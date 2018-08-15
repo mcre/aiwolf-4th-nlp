@@ -327,9 +327,9 @@ public class Ear{
 					if(actionClause.getAiwolfWordMeaning().equals("投票")) {
 						tmp = actionClause.getKakuMap().get("ニ");
 						if(tmp != null && tmp.getMain().equals("誰")) { // 誰に投票する？
-							qas.put(key, prefix + "いま時点では<僕>は`<さん>に投票しようと思っている<よ>。");
+							qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
 						} else if (tmp != null && tmp.getAiwolfWordType().equals("プレイヤー")) { // Agent01に投票する？
-							qas.put(key, prefix + "いま時点では<僕>は`<さん>に投票しようと思っている<よ>。");
+							qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
 						}
 					}
 				}
