@@ -32,13 +32,15 @@ public class Mouth {
 	private boolean firstVoted = false;
 	private Agent targetOfVotingDeclarationToday = null;
 
+	private static int playerNum = 0; // キャラクター変更用
+
 	public Mouth(McrePlayer player) {
 		this.player = player;
+		characterMap = Character.getCharacterMap(playerNum++);
 	}
 
 	public void initialize(GameInfo gameInfo) {
 		talkedSet = new HashSet<>();
-		characterMap = Character.getCharacterMap(gameInfo.getAgent().getAgentIdx());
 		firstVoted = false;
 	}
 

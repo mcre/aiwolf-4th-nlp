@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Character {
-	public static Map<String, String> getCharacterMap(int agentIdx) {
+	public static Map<String, String> getCharacterMap(int number) {
 		Map<String, String> c = new HashMap<>();
-		switch (agentIdx % 5) {
+		switch (number % 5) {
 		case 0:
 			c.put("こんにちは。", "こんにちは。");
 			c.put("僕", "僕");
