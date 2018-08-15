@@ -258,47 +258,107 @@ public class Ear{
 			}
 		}
 			
-		
+		String prefix = ">>" + talker + " " + talker + "<さん>、";
 		if(questionTo == gameInfo.getAgent()) { // 自分宛て問いかけの場合
-			if(
-					Clause.findModalityClauses(clauses, "勧誘").size() > 0 || // 一緒に遊ぼうよ。, 今日はAgent[01]さんに投票しましょうよ
-					Clause.findModalityClauses(clauses, "意志").size() > 0 || // 今日はAgent[01]さんに投票しましょう
-					Clause.findModalityClauses(clauses, "依頼Ａ").size() > 0) { // 今日はAgent[01]さんに投票してください
-				qas.put(key, ">>" + talker + " " + talker + "<さん>、うーん、そのお願いはどうしようかな。");
+			List<Clause> willClauses = Clause.findModalityClauses(clauses, "意志");
+			for(Clause willClause: willClauses) {
+				if(willClause.getMain().equals("知る")) { // 知りたい
+					tmp = willClause.getKakuMap().get("ガ");
+					if(tmp != null && tmp.getMain().equals("理由")) // 理由が知りたい
+						for(Clause acitonClause: actionClauses)
+							if(acitonClause.getAiwolfWordMeaning().equals("占い")) // 占った理由が知りたい
+								qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
+				}
 			}
-			
 			if(Clause.findModalityClauses(clauses, "疑問").size() > 0) {
-				for(Clause roleClause: roleClauses) {
-					if(roleClause.getAiwolfWordMeaning().equals("人狼")) {
-						String main = roleClause.getKakuMap().get("ガ").getMain();
-						if(Clause.findMainClauses(clauses, "誰").size() > 0) { // 誰が人狼だと思う？
-							qas.put(key, ">>" + talker + " " + talker + "<さん>、<僕>は#<さん>が怪しいと思う<よ>。");
-							break;
-						} else if(main.equals("君") || main.equals("おまえ") || main.equals("キミ") || main.equals("あなた") || main.equals("御前")) { // あなたが人狼なんでしょう？, あなたが人狼なんですか！？
-							qas.put(key, ">>" + talker + " " + talker + "<さん>、<僕>は人狼じゃない<よ>。");
-							break;
-						} else {
-							qas.put(key, ">>" + talker + " " + talker + "<さん>、その質問はちょっとわからない<よ>。");
+				for(Clause suspiciousClause: Clause.findMainClauses(clauses, "疑う")) {
+					tmp = suspiciousClause.getKakuMap().get("ヲ");
+					Clause tmp2 = suspiciousClause.getKakuMap().get("修飾");
+					if(tmp != null) {
+						if(tmp.getMain().equals("誰")) // 誰を疑う？
+							qas.put(key, prefix + "<僕>は#<さん>が怪しいと思う<よ>。");
+						if(tmp2 != null && tmp2.getAttributes().contains("疑問詞")) { // どうして
+							if(tmp.getAttributes().contains("一人称")) // どうして僕？
+								qas.put(key, prefix + "&" + String.format("%02d", talker.getAgentIdx()));
+							
+							String awt = tmp.getAiwolfWordType();
+							if(awt != null && awt.equals("プレイヤー")) // どうしてAgent03を疑う？
+								qas.put(key, prefix + "&" + String.format("%02d", Integer.parseInt(tmp.getAiwolfWordMeaning())));
+							if(tmp.getAttributes().contains("人称代名詞")) // どうして彼を疑う？
+								qas.put(key, prefix + tmp.getMain() + "って誰のこと？");
 						}
-					} if(roleClause.getAiwolfWordMeaning().equals("狂人")) {
-						String main = "";
-						if(roleClause.getKakuMap().containsKey("ガ"))
-							main = roleClause.getKakuMap().get("ガ").getMain();
-						if(main.equals("君") || main.equals("おまえ") || main.equals("キミ") || main.equals("あなた") || main.equals("御前")) { // あなたが狂人なんでしょう？, あなたが狂人なんですか！？
-							qas.put(key, ">>" + talker + " " + talker + "<さん>、<僕>は狂人じゃない<よ>。");
+					}
+				}
+				for(Clause suspiciousClause: Clause.findMainClauses(clauses, "怪しい")) {
+					tmp = suspiciousClause.getKakuMap().get("ガ");
+					Clause tmp2 = suspiciousClause.getKakuMap().get("修飾");
+					if(tmp != null) {
+						if(tmp.getMain().equals("誰")) // 誰が怪しい？
+							qas.put(key, prefix + "<僕>は#<さん>が怪しいと思う<よ>。");
+						if(tmp2 != null && tmp2.getAttributes().contains("疑問詞")) { // どうして
+							if(tmp.getAttributes().contains("一人称")) // どうして僕が怪しい？
+								qas.put(key, prefix + "&" + String.format("%02d", talker.getAgentIdx()));
+							
+							String awt = tmp.getAiwolfWordType();
+							if(awt != null && awt.equals("プレイヤー")) // どうしてAgent03が怪しい？
+								qas.put(key, prefix + "&" + String.format("%02d", Integer.parseInt(tmp.getAiwolfWordMeaning())));
+							if(tmp.getAttributes().contains("人称代名詞")) // どうして彼が怪しい？
+								qas.put(key, prefix + tmp.getMain() + "って誰のこと？");
+						}
+					}
+				}
+				for(Clause goClause: Clause.findMainClauses(clauses, "行く")) { // 行くか？ or 行かないか？
+					if(goClause.getAttributes().contains("動態述語"))
+						qas.put(key, prefix + "いい<よ>！");
+				}
+				for(Clause suspiciousClause: Clause.findMainClauses(clauses, "疑う")) {
+					tmp = suspiciousClause.getKakuMap().get("ヲ");
+					if(tmp != null && tmp.getMain().equals("誰")) { // 誰を疑っている？
+						qas.put(key, prefix + "<僕>は#<さん>が怪しいと思う<よ>。");
+					}
+				}
+				for(Clause actionClause: actionClauses) {
+					if(actionClause.getAiwolfWordMeaning().equals("占い")) {
+						tmp = actionClause.getKakuMap().get("修飾");
+						if(tmp != null && tmp.getAttributes().contains("疑問詞")) { // どうして私を占った？
+							qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
+						}
+					}
+					if(actionClause.getAiwolfWordMeaning().equals("投票")) {
+						tmp = actionClause.getKakuMap().get("ニ");
+						if(tmp != null && tmp.getMain().equals("誰")) { // 誰に投票する？
+							qas.put(key, prefix + "いま時点では<僕>は`<さん>に投票しようと思っている<よ>。");
+						} else if (tmp != null && tmp.getAiwolfWordType().equals("プレイヤー")) { // Agent01に投票する？
+							qas.put(key, prefix + "いま時点では<僕>は`<さん>に投票しようと思っている<よ>。");
+						}
+					}
+				}
+				for(Clause roleClause: roleClauses) {
+					if(roleClause.getAiwolfWordMeaning().equals("人間")) {
+						if(Clause.findMainClauses(clauses, "誰").size() > 0) { // 誰が村人だと思う？
+							qas.put(key, prefix + "<僕>は^<さん>は怪しくないと思う<よ>。");
 							break;
-						} else {
-							qas.put(key, ">>" + talker + " " + talker + "<さん>、その質問はちょっとわからない<よ>。");
+						}
+					} else if(roleClause.getAiwolfWordMeaning().equals("人狼")) {
+						tmp = roleClause.getKakuMap().get("ガ");
+						if(Clause.findMainClauses(clauses, "誰").size() > 0) { // 誰が人狼だと思う？
+							qas.put(key, prefix + "<僕>は#<さん>が怪しいと思う<よ>。");
+							break;
+						} else if(tmp != null && tmp.getAttributes().contains("二人称")) { // あなたが人狼なんでしょう？, あなたが人狼なんですか！？
+							qas.put(key, prefix + "<僕>は人狼じゃない<よ>。");
+							break;
+						}
+					} else if(roleClause.getAiwolfWordMeaning().equals("狂人")) {
+						tmp = roleClause.getKakuMap().get("ガ");
+						if(tmp != null && tmp.getAttributes().contains("二人称")) { // あなたが狂人なんでしょう？, あなたが狂人なんですか！？
+							qas.put(key, prefix + "<僕>は狂人じゃない<よ>。");
+							break;
 						}
 					} else if(roleClause.getAiwolfWordMeaning().equals("占い師")) { // 占い師はいつCOすべきと思いますか？
 						if(Clause.findMainClauses(clauses, "いつ").size() > 0 && Clause.findMainClauses(clauses, "ＣＯ").size() > 0) {
-							qas.put(key, ">>" + talker + " " + talker + "<さん>、できるだけ早いほうがいいと思う<よ>。");
+							qas.put(key, prefix + "できるだけ早いほうがいいと思う<よ>。");
 							break;
-						} else {
-							qas.put(key, ">>" + talker + " " + talker + "<さん>、その質問はちょっとわからない<よ>。");
 						}
-					} else {
-						qas.put(key, ">>" + talker + " " + talker + "<さん>、その質問はちょっとわからない<よ>。");
 					}
 				}
 			}
