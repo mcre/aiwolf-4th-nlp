@@ -279,11 +279,13 @@ public class Ear{
 							qas.put(key, prefix + "<僕>は#<さん>が怪しいと思う<よ>。");
 						if(tmp2 != null && tmp2.getAttributes().contains("疑問詞")) { // どうして
 							if(tmp.getAttributes().contains("一人称")) // どうして僕？
-								qas.put(key, prefix + "&" + String.format("%02d", talker.getAgentIdx()));
+								//qas.put(key, prefix + "&" + String.format("%02d", talker.getAgentIdx()));
+								qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
 							
 							String awt = tmp.getAiwolfWordType();
 							if(awt != null && awt.equals("プレイヤー")) // どうしてAgent03を疑う？
-								qas.put(key, prefix + "&" + String.format("%02d", Integer.parseInt(tmp.getAiwolfWordMeaning())));
+								//qas.put(key, prefix + "&" + String.format("%02d", Integer.parseInt(tmp.getAiwolfWordMeaning())));
+								qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
 							if(tmp.getAttributes().contains("人称代名詞")) // どうして彼を疑う？
 								qas.put(key, prefix + tmp.getMain() + "って誰のこと？");
 						}
@@ -297,11 +299,13 @@ public class Ear{
 							qas.put(key, prefix + "<僕>は#<さん>が怪しいと思う<よ>。");
 						if(tmp2 != null && tmp2.getAttributes().contains("疑問詞")) { // どうして
 							if(tmp.getAttributes().contains("一人称")) // どうして僕が怪しい？
-								qas.put(key, prefix + "&" + String.format("%02d", talker.getAgentIdx()));
+								//qas.put(key, prefix + "&" + String.format("%02d", talker.getAgentIdx()));
+								qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
 							
 							String awt = tmp.getAiwolfWordType();
 							if(awt != null && awt.equals("プレイヤー")) // どうしてAgent03が怪しい？
-								qas.put(key, prefix + "&" + String.format("%02d", Integer.parseInt(tmp.getAiwolfWordMeaning())));
+								//qas.put(key, prefix + "&" + String.format("%02d", Integer.parseInt(tmp.getAiwolfWordMeaning())));
+								qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
 							if(tmp.getAttributes().contains("人称代名詞")) // どうして彼が怪しい？
 								qas.put(key, prefix + tmp.getMain() + "って誰のこと？");
 						}

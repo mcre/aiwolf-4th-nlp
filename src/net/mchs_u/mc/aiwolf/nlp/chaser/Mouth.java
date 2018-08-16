@@ -24,11 +24,11 @@ import net.mchs_u.mc.aiwolf.nlp.common.Transrater;
 
 public class Mouth {
 	private static final double EPS =  0.00001d;
-	
+
 	private Set<String> talkedSet = null;
 	private McrePlayer player = null;
 	private Map<String, String> characterMap = null;
-	
+
 	private boolean firstVoted = false;
 	private Agent targetOfVotingDeclarationToday = null;
 
@@ -146,14 +146,14 @@ public class Mouth {
 			return Talk.SKIP;
 		}
 	}
-	
+
 	private static String agentsToTalk(GameInfo gameInfo, Collection<Agent> agents, char conj) {
 		String ret = "";
 		for(Agent agent: agents)
 			ret += agent.toString() + "<さん>" + conj;
 		return ret.substring(0, ret.length() - 1).replace(gameInfo.getAgent() + "<さん>", "<僕>");
 	}
-	
+
 	private static String resultsToTalk(GameInfo gameInfo, Collection<AgentTargetResult> results, Set<Agent> seers) {
 		String ret = "";
 		for(AgentTargetResult r: results) {
@@ -169,7 +169,7 @@ public class Mouth {
 			return ret.substring(0, ret.length() - 1).replace(gameInfo.getAgent() + "<さん>", "<僕>");
 		return null;
 	}
-	
+
 	private String makeStatusTalk(GameInfo gameInfo) {		
 		String s = "";
 		Set<Agent> seers = getEstimate().getCoSet(Role.SEER);
@@ -193,18 +193,21 @@ public class Mouth {
 			return s.substring(0, s.length() - 2) + "だから、";
 		return s.substring(0, s.length() - 2) + "たから、";
 	}
-	
-	private static List<Agent> max(Collection<Agent> candidate, Map<Agent, Double> likeness) {
+
+	private static List<Agent> max(Collection<Agent> candidate, Map<Agent, Double> likeness, Agent me) {
+		Collection<Agent> candidateCopy = new ArrayList<Agent>(candidate);
+		Map<Agent, Double> likenessCopy = new HashMap<Agent, Double>(likeness);
+		
 		List<Agent> ret = new ArrayList<>();
-		if(likeness == null)
-			return ret;
-		double max = Collections.max(likeness.values());
-		for(Agent agent: candidate)
-			if(Math.abs(max - likeness.get(agent)) < EPS)
+		candidateCopy.remove(me);
+		likenessCopy.remove(me);
+		double max = Collections.max(likenessCopy.values());
+		for(Agent agent: candidateCopy)
+			if(Math.abs(max - likenessCopy.get(agent)) < EPS)
 				ret.add(agent);
 		return ret;
 	}
-	
+
 	private static Map<Agent, Double> toPossessedLikeness(Map<Agent, Double> werewolfLikeness, Map<Agent, Double> villagerTeamLikeness) {
 		Map<Agent, Double> ret = new HashMap<>();
 		for(Agent agent: werewolfLikeness.keySet())
@@ -215,7 +218,7 @@ public class Mouth {
 	private String skipTalk(GameInfo gameInfo, Collection<String> answers) {
 		String ret = null;
 		List<String> tmp = new ArrayList<String>();
-		
+
 		if(getEstimate().isPowerPlay()) { // PPモード 
 			if(!talkedSet.contains("パワープレイ反応")){
 				talkedSet.add("パワープレイ反応");
@@ -294,31 +297,39 @@ public class Mouth {
 		for(String answer: answers) { //Earから渡されたAnswer
 			if(!talkedSet.contains("answer:" + answer)){
 				talkedSet.add("answer:" + answer);
-				
 				Agent voteTarget = player.getVoteTarget();
-				if(voteTarget != null) {
+				List<Agent> estimatedVillagers = max(gameInfo.getAgentList(), getEstimate().getVillagerTeamLikeness(), gameInfo.getAgent());
+				Agent estimatedVillager = null;
+				if(estimatedVillagers.size() > 0)
+					estimatedVillager = estimatedVillagers.get(0);
+				if(voteTarget != null && answer.contains("#")) {
 					if(answer.startsWith(">>" + voteTarget + " "))
 						return r(answer.replace("#<さん>", "<あなた>"));
 					else
 						return r(answer.replace("#", voteTarget.toString()));
 				}
+				if(estimatedVillager != null && answer.contains("^")) {
+					if(answer.startsWith(">>" + estimatedVillager + " "))
+						return r(answer.replace("^<さん>", "<あなた>"));
+					else
+						return r(answer.replace("^", estimatedVillager.toString()));
+				}
+				return r(answer);
 			}
 		}
-		
+
 		// 8ターン目以降(7ターン目を読み込んでいる時)はここより下の発言を抑制 -------------
-		
+
 		int talkSize = gameInfo.getTalkList().size();
 		if(talkSize > 0)
 			if(gameInfo.getTalkList().get(talkSize - 1).getTurn() > 6)
 				return Talk.SKIP;
-		
-		List<Agent> candidate = gameInfo.getAgentList();
-		candidate.remove(gameInfo.getAgent());
+
 		String st = makeStatusTalk(gameInfo);
 		if(!talkedSet.contains("状況発言" + gameInfo.getDay()) && st != null){ // 状況発言
 			switch ((int)(Math.random() * 6)) {
 			case 0:
-				List<Agent> wolves = max(candidate, getEstimate().getWerewolfLikeness());
+				List<Agent> wolves = max(gameInfo.getAgentList(), getEstimate().getWerewolfLikeness(), gameInfo.getAgent());
 				if(!wolves.isEmpty() && wolves.size() <= 2) {
 					talkedSet.add("状況発言" + gameInfo.getDay());
 					return r(st + agentsToTalk(gameInfo, wolves, 'か') + "が人狼だと思う<よ>。");
@@ -326,7 +337,7 @@ public class Mouth {
 				break;
 			case 1:
 				Estimate es = getEstimate();
-				List<Agent> possesseds = max(candidate, toPossessedLikeness(es.getWerewolfLikeness(), es.getVillagerTeamLikeness()));
+				List<Agent> possesseds = max(gameInfo.getAgentList(), toPossessedLikeness(es.getWerewolfLikeness(), es.getVillagerTeamLikeness()), gameInfo.getAgent());
 				if(!possesseds.isEmpty() && possesseds.size() <= 2) {
 					talkedSet.add("状況発言" + gameInfo.getDay());
 					return r(st + agentsToTalk(gameInfo, possesseds, 'か') + "が狂人だと思う<よ>。");
@@ -334,7 +345,7 @@ public class Mouth {
 				break;
 			}
 		}
-		
+
 		if(!talkedSet.contains("who")){
 			talkedSet.add("who");
 			List<Agent> as = new ArrayList<>(gameInfo.getAliveAgentList());
@@ -344,14 +355,14 @@ public class Mouth {
 			tmp.clear();
 			tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が人狼だと<思いますか>？"));
 			//tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が狂人だと<思いますか>？"));
-			//tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が村人だと<思いますか>？"));
+			tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が村人だと<思いますか>？"));
 			ret = rnd(tmp, 10);
 			if(ret != null) return ret;
 		}
 
 		return Talk.SKIP;
 	}
-	
+
 	// ランダムで発言を返す。乱数10, 発言パターン3の場合、7割の確率でnullを返すので、確率で発言させることもできる
 	private String rnd(List<String> talkCandidates, int numOfRandomPatterns) {
 		int random = (int)(Math.random() * numOfRandomPatterns);
@@ -359,7 +370,7 @@ public class Mouth {
 			return null;
 		return talkCandidates.get(random);
 	}
-	
+
 	private String r(String s) { // replaceの略, キャラクターごとの発言に置換するだけ
 		String ret = s;
 		for(String key: characterMap.keySet())
