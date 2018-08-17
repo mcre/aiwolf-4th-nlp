@@ -326,6 +326,10 @@ public class Ear{
 			
 		String prefix = ">>" + talker + " " + talker + "<さん>、";
 		if(questionTo == gameInfo.getAgent()) { // 自分宛て問いかけの場合
+			for(Clause mainClause: Clause.findMainClauses(clauses, "好きだ")) {
+				if(!mainClause.isNegative())
+					qas.put(key, prefix + "<僕>もだ<よ>！");
+			}
 			List<Clause> willClauses = Clause.findModalityClauses(clauses, "意志");
 			for(Clause willClause: willClauses) {
 				if(willClause.getMain().equals("知る")) { // 知りたい
@@ -335,8 +339,45 @@ public class Ear{
 							if(acitonClause.getAiwolfWordMeaning().equals("占い")) // 占った理由が知りたい
 								qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
 				}
+				if(willClause.getAiwolfWordMeaning() != null && willClause.getAiwolfWordMeaning().equals("投票")) {
+					tmp = willClause.getKakuMap().get("ヲ");
+					if(tmp != null && tmp.getAttributes().contains("疑問詞")) // 誰を吊りたい
+						qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
+				}
+				if(willClause.getAiwolfWordMeaning() != null && willClause.getAiwolfWordMeaning().equals("投票依頼")) {
+					tmp = willClause.getKakuMap().get("ニ");
+					if(tmp != null && tmp.getAiwolfWordType() != null && tmp.getAiwolfWordType().equals("プレイヤー")) // Agent01に票を合わせよう
+						qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
+				}
 			}
-			if(Clause.findModalityClauses(clauses, "疑問").size() > 0) {
+			
+			List<Clause> requestClauses = Clause.findModalityClauses(clauses, "依頼Ａ");
+			if(requestClauses.size() > 0) {
+				for(Clause actionClause: actionClauses) {
+					if(actionClause.getAiwolfWordMeaning().equals("占い")) {
+						tmp = actionClause.getChild();
+						if(tmp != null && tmp.getMain().equals("理由")) { // 占った理由を教えて
+							qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
+						}
+					}
+				}
+			}
+						
+			if(Clause.findModalityClauses(clauses, "疑問").size() < 1) { // 疑問じゃない
+				for(Clause actionClause: actionClauses) {
+					if(actionClause.getAiwolfWordMeaning().equals("投票")) {
+						tmp = actionClause.getKakuMap().get("ニ");
+						if(tmp != null && tmp.getAttributes().contains("二人称")) { // 君に投票する
+							qas.put(key, prefix + "<僕>は人狼じゃない<よ>。");
+						}
+					}
+				}
+			} else { // 疑問
+				for(Clause suspiciousClause: Clause.findMainClauses(clauses, "疑い")) {
+					tmp = suspiciousClause.getChild();
+					if(tmp != null && tmp.getAttributes().contains("疑問詞")) // 疑い先はどこ？
+						qas.put(key, prefix + "<僕>は#<さん>が怪しいと思う<よ>。");
+				}
 				for(Clause suspiciousClause: Clause.findMainClauses(clauses, "疑う")) {
 					tmp = suspiciousClause.getKakuMap().get("ヲ");
 					Clause tmp2 = suspiciousClause.getKakuMap().get("修飾");
@@ -388,21 +429,27 @@ public class Ear{
 					}
 				}
 				for(Clause actionClause: actionClauses) {
-					if(actionClause.getAiwolfWordMeaning().equals("占い")) {
+					String wm = actionClause.getAiwolfWordMeaning();
+					if(wm.equals("占い")) {
 						tmp = actionClause.getKakuMap().get("修飾");
-						if(tmp != null && tmp.getAttributes().contains("疑問詞")) { // どうして私を占った？
+						if(tmp != null && tmp.getAttributes().contains("疑問詞")) // どうして私を占った？
 							qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
-						}
+						tmp = actionClause.getKakuMap().get("ヲ");
+						if(tmp != null && tmp.getAttributes().contains("一人称")) // どうして私を占おうと思った？
+							qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
 					}
-					if(actionClause.getAiwolfWordMeaning().equals("投票")) {
+					if(wm.equals("投票") || wm.equals("投票依頼")) {
 						tmp = actionClause.getKakuMap().get("ニ");
 						if(tmp != null) {
 							String tmp2 = tmp.getAiwolfWordType();
-							if(tmp.getMain().equals("誰")) { // 誰に投票する？
+							if(tmp.getAttributes().contains("疑問詞")) { // 誰に投票する？
 								qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
 							} else if (tmp2 != null && tmp2.equals("プレイヤー")) { // Agent01に投票する？
 								qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
-							}	
+							}
+						}
+						if(actionClause.getModalities().contains("疑問")) { // 君も投票する？
+							qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
 						}
 					}
 				}
@@ -423,7 +470,10 @@ public class Ear{
 						}
 					} else if(roleClause.getAiwolfWordMeaning().equals("狂人")) {
 						tmp = roleClause.getKakuMap().get("ガ");
-						if(tmp != null && tmp.getAttributes().contains("二人称")) { // あなたが狂人なんでしょう？, あなたが狂人なんですか！？
+						if(Clause.findMainClauses(clauses, "誰").size() > 0) { // 誰が狂人だと思う？
+							qas.put(key, prefix + "<僕>は*<さん>が狂人だと思う<よ>。");
+							break;
+						} else if(tmp != null && tmp.getAttributes().contains("二人称")) { // あなたが狂人なんでしょう？, あなたが狂人なんですか！？
 							qas.put(key, prefix + "<僕>は狂人じゃない<よ>。");
 							break;
 						}
