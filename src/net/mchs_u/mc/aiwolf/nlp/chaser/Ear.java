@@ -85,7 +85,7 @@ public class Ear{
 			String[] nlSentences = nl.split("(?<=[！？。　]++)"); // 文に分解
 			
 			for(String nlSentence: nlSentences)
-				ret.addAll(talkToContents(gameInfo, talker, questionTo, key, Clause.createClauses(nlSentence), nl));
+				ret.addAll(talkToContents(gameInfo, talker, questionTo, key, Clause.createClauses(nlSentence), nl, ret));
 			
 			ret = new ArrayList<String>(new LinkedHashSet<>(ret)); // 重複削除
 			Collections.sort(ret); // COMINGOUTを優先にしたいので文字列でソート
@@ -116,6 +116,7 @@ public class Ear{
 		tmp = tmp.replace("私、", "私は");
 		tmp = tmp.replace("ぼく、", "ぼくは");
 		tmp = tmp.replace("ボク、", "ボクは");
+		tmp = tmp.replace("わたし…占", "わたしは占");
 		tmp = tmp.replace("］の結果", "］の占い結果");
 		tmp = tmp.replace("人狼じゃ", "人狼だ");
 		tmp = tmp.replace("狂人じゃ", "狂人だ");
@@ -126,7 +127,7 @@ public class Ear{
 		return tmp;
 	}
 	
-	private List<String> talkToContents(GameInfo gameInfo, Agent talker, Agent questionTo, String key, List<Clause> clauses, String fullTalk) throws IOException, InterruptedException {
+	private List<String> talkToContents(GameInfo gameInfo, Agent talker, Agent questionTo, String key, List<Clause> clauses, String fullTalk, List<String> protocols) throws IOException, InterruptedException {
 		List<Clause> roleClauses   = Clause.findAiwolfTypeClauses(clauses, "役職");
 		List<Clause> roleCoClauses = Clause.findAiwolfTypeClauses(clauses, "役職CO");
 		List<Clause> actionClauses = Clause.findAiwolfTypeClauses(clauses, "行為");
@@ -134,20 +135,40 @@ public class Ear{
 		Clause tmp = null;
 		
 		List<Content> contents = new ArrayList<>();
+		
+		for(Clause clause: clauses) {
+			Map<String, Clause> km = clause.getKakuMap();
+			if(
+					km.containsKey("ガ") && km.get("ガ") != null && km.get("ガ").getAiwolfWordType() != null && km.get("ガ").getAiwolfWordType().equals("プレイヤー") &&
+					km.containsKey("ト") && km.get("ト") != null && km.get("ト").getAiwolfWordType() != null && km.get("ト").getAiwolfWordType().equals("役職") &&
+					km.containsKey("ニ") && km.get("ニ") != null
+			) { // 「Agent[01]は人狼だ、と水晶玉に浮き上がったんだ。」 かなり無理矢理・・・
+				Agent target = Agent.getAgent(Integer.parseInt(km.get("ガ").getAiwolfWordMeaning()));
+				switch (km.get("ト").getAiwolfWordMeaning()) {
+				case "人狼":	contents.add(new Content(new DivinedResultContentBuilder(target, Species.WEREWOLF))); break;
+				case "人間":	contents.add(new Content(new DivinedResultContentBuilder(target, Species.HUMAN))); break;
+				}
+			}
+		}
 				
 		for(Clause roleCoClause: roleCoClauses) {
 			if(questionTo != null) // 問いかけの場合はスキップ
 				break;
 			if(!roleCoClause.isNegative()) {
-				// ☆役職CO「占い師COします」
+				// ☆役職CO「占い師COします」				
 				if(roleCoClause.getAttributes().contains("動態述語") &&
-						roleCoClause.getChild() == null && // この単語がなにかに係っているものを回避することで「占い師COしている人は・・・」などを除く
-						roleCoClause.getKakuMap().size() < 1) { // ↑と同様
+						!roleCoClause.getModalities().contains("認識-推量") && // 「占いCOしているからでしょう」を回避
+						!roleCoClause.getModalities().contains("疑問") && // 「占いCO！？」を回避
+						!roleCoClause.getAttributes().contains("{ID:〜なら}") && // 「彼が占いCOなら」を回避
+						(
+								(roleCoClause.getKakuMap().size() < 1) || // 「〇〇が占いCO」等を回避
+								(roleCoClause.getKakuMap().get("ガ") != null && roleCoClause.getKakuMap().get("ガ").getAttributes().contains("一人称"))) // ガ一人称の場合は救済
+						) {
 					switch (roleCoClause.getAiwolfWordMeaning()) {
 					case "占い師":	contents.add(new Content(new ComingoutContentBuilder(talker, Role.SEER))); break;
 					case "人狼":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.WEREWOLF))); break;
 					case "狂人":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.POSSESSED))); break;
-					case "人間":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.VILLAGER))); break;
+					case "村人":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.VILLAGER))); break;
 					}
 				}
 			}
@@ -160,14 +181,33 @@ public class Ear{
 			if(!roleClause.isNegative()) {				
 				// ☆役職CO「私は占い師です」
 				tmp = roleClause.getKakuMap().get("ガ");
+				ArrayList<String> parentMains = new ArrayList<String>();
+				for(Clause c: roleClause.getParents())
+					parentMains.add(c.getMain());
 				if(tmp != null && tmp.getAttributes().contains("一人称") &&
 						!roleClause.getModalities().contains("疑問") &&
-						!roleClause.getAttributes().contains("節機能-理由")) { // 「私が占い師だから、〜」を回避) {
+						!roleClause.getAttributes().contains("節機能-理由") && // 「私が占い師だから、〜」を回避
+						(!roleClause.getModalities().contains("認識-証拠性") || // 「〜によると、私が人狼らしい」を回避
+								(roleClause.getModalities().contains("認識-証拠性") && parentMains.contains("本当"))) // 「私は本当は狂人だったみたい」は本当なので救済)
+						) {
 					switch (roleClause.getAiwolfWordMeaning()) {
 					case "占い師":	contents.add(new Content(new ComingoutContentBuilder(talker, Role.SEER))); break;
 					case "人狼":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.WEREWOLF))); break;
 					case "狂人":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.POSSESSED))); break;
 					//case "人間":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.VILLAGER))); break; //私は人間です、は村人COというには弱いので消す
+					}
+				}
+				
+				// ☆役職CO「占い師は私です」
+				tmp = roleClause.getChild();
+				if(tmp != null && tmp.getAttributes().contains("一人称") &&
+						!roleClause.getModalities().contains("疑問") &&
+						!roleClause.getAttributes().contains("節機能-理由") && // 「占い師は私だから、〜」を回避) {
+						!roleClause.getModalities().contains("認識-証拠性")) { // 「〜によると、人狼は私らしい」を回避) {
+					switch (roleClause.getAiwolfWordMeaning()) {
+					case "占い師":	contents.add(new Content(new ComingoutContentBuilder(talker, Role.SEER))); break;
+					case "人狼":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.WEREWOLF))); break;
+					case "狂人":		contents.add(new Content(new ComingoutContentBuilder(talker, Role.POSSESSED))); break;
 					}
 				}
 				
@@ -178,7 +218,14 @@ public class Ear{
 						roleClause.getKakuMap().get("ニ") == null && // 「ガ」と「ニ」が両方係ってる場合の「○○がXXに人狼判定しました」等をスルーする
 						tmp.getAiwolfWordType().equals("プレイヤー") && 
 						!roleClause.getModalities().contains("疑問") &&
-						!(child != null && child.getMain().equals("思う"))) { // 「人狼だと思う」の回避
+						!roleClause.getAttributes().contains("{正規化代表表記:[っぽい,っぽい]}") && // 「狼っぽいよね」を回避
+						(
+								!roleClause.getModalities().contains("認識-証拠性") || // 「村人のようだな」を回避
+								(roleClause.getModalities().contains("認識-証拠性") && protocols.contains((new Content(new ComingoutContentBuilder(talker, Role.SEER))).getText())) // 占いCOと同時なら「占いCO。昨日の晩一人でこっくりさんをしたんだが、どうやらAgent[01]は人狼らしい。」の場合があるので占い結果にする
+						) &&
+						!roleClause.getText().contains("かな") && // 「村人かな」を回避
+						!(child != null && child.getMain().equals("思う")) && // 「人狼だと思う」の回避
+						!(child != null && child.getMain().equals("出る") && child.getAttributes().contains("{正規化代表表記:[しまう,しまう]}"))) { // 「人狼と出てしまう」の回避
 					Agent target = Agent.getAgent(Integer.parseInt(tmp.getAiwolfWordMeaning()));
 					switch (roleClause.getAiwolfWordMeaning()) {
 					case "人狼":	contents.add(new Content(new DivinedResultContentBuilder(target, Species.WEREWOLF))); break;
@@ -235,17 +282,36 @@ public class Ear{
 		
 		for(Clause actionClause: actionClauses) {
 			if(!actionClause.isNegative()) {
-				if(actionClause.getAiwolfWordMeaning().equals("投票")) {
-					// ☆投票依頼「Agent[04]さんに投票してください」
+				if(actionClause.getAiwolfWordMeaning().equals("投票依頼")) {
+					// ☆投票依頼「Agent[04]さんに投票を合わせよう」「Agent[04]さんに投票を集めよう」
 					Set<String> m = actionClause.getModalities();
-					if((m.contains("依頼Ａ") || m.contains("勧誘")) && !m.contains("意志")) {
+					if((m.contains("依頼Ａ") || m.contains("依頼Ｂ") || m.contains("勧誘") || m.contains("意志"))) {
 						int agentId = -1;
 						tmp = actionClause.getKakuMap().get("ニ");
 						if(tmp != null && tmp.getAiwolfWordType().equals("プレイヤー"))
 							agentId = Integer.parseInt(tmp.getAiwolfWordMeaning());
+						if(agentId >= 0) {
+							Agent target = Agent.getAgent(agentId);
+							if(target != null)	
+								contents.add(new Content(new RequestContentBuilder(null, new Content(new VoteContentBuilder(target)))));
+						}
+					}
+				}
+				if(actionClause.getAiwolfWordMeaning().equals("投票")) {
+					// ☆投票依頼「Agent[04]さんに投票してください」
+					Set<String> m = actionClause.getModalities();
+					Clause child = actionClause.getChild();
+					if(((m.contains("依頼Ａ") || m.contains("依頼Ｂ") || m.contains("勧誘")) && !actionClause.getText().contains("かな")) ||  // 「投票しようかな」が勧誘になるのでここで回避
+							(m.contains("意志") && child != null && child.getModalities().contains("疑問")) || // 「Agent[04]さんに投票するつもりだが、きみもどうだ？」
+							actionClause.getText().contains("するんだ！") // 「○○に投票するんだ！」
+					) {
+						int agentId = -1;
+						tmp = actionClause.getKakuMap().get("ニ");
+						if(tmp != null && tmp.getAiwolfWordType() != null && tmp.getAiwolfWordType().equals("プレイヤー"))
+							agentId = Integer.parseInt(tmp.getAiwolfWordMeaning());
 						
 						tmp = actionClause.getKakuMap().get("ヲ");
-						if(tmp != null && tmp.getAiwolfWordType().equals("プレイヤー"))
+						if(tmp != null && tmp.getAiwolfWordType() != null && tmp.getAiwolfWordType().equals("プレイヤー"))
 							agentId = Integer.parseInt(tmp.getAiwolfWordMeaning());
 							
 						if(agentId >= 0) {
@@ -330,10 +396,13 @@ public class Ear{
 					}
 					if(actionClause.getAiwolfWordMeaning().equals("投票")) {
 						tmp = actionClause.getKakuMap().get("ニ");
-						if(tmp != null && tmp.getMain().equals("誰")) { // 誰に投票する？
-							qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
-						} else if (tmp != null && tmp.getAiwolfWordType().equals("プレイヤー")) { // Agent01に投票する？
-							qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
+						if(tmp != null) {
+							String tmp2 = tmp.getAiwolfWordType();
+							if(tmp.getMain().equals("誰")) { // 誰に投票する？
+								qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
+							} else if (tmp2 != null && tmp2.equals("プレイヤー")) { // Agent01に投票する？
+								qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
+							}	
 						}
 					}
 				}
