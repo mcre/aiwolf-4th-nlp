@@ -298,15 +298,29 @@ public class Mouth {
 			if(!talkedSet.contains("answer:" + answer)){
 				talkedSet.add("answer:" + answer);
 				Agent voteTarget = player.getVoteTarget();
-				List<Agent> estimatedVillagers = max(gameInfo.getAgentList(), getEstimate().getVillagerTeamLikeness(), gameInfo.getAgent());
+				
+				Estimate es = getEstimate();
+				List<Agent> estimatedVillagers = max(gameInfo.getAgentList(), es.getVillagerTeamLikeness(), gameInfo.getAgent());
 				Agent estimatedVillager = null;
 				if(estimatedVillagers.size() > 0)
 					estimatedVillager = estimatedVillagers.get(0);
+				
+				List<Agent> estimatedPossesseds = max(gameInfo.getAgentList(), toPossessedLikeness(es.getWerewolfLikeness(), es.getVillagerTeamLikeness()), gameInfo.getAgent());
+				Agent estimatedPossessed = null;
+				if(estimatedPossesseds.size() > 0)
+					estimatedPossessed = estimatedPossesseds.get(0);
+				
 				if(voteTarget != null && answer.contains("#")) {
 					if(answer.startsWith(">>" + voteTarget + " "))
 						return r(answer.replace("#<さん>", "<あなた>"));
 					else
 						return r(answer.replace("#", voteTarget.toString()));
+				}
+				if(estimatedPossessed != null && answer.contains("*")) {
+					if(answer.startsWith(">>" + estimatedPossessed + " "))
+						return r(answer.replace("*<さん>", "<あなた>"));
+					else
+						return r(answer.replace("*", estimatedPossessed.toString()));
 				}
 				if(estimatedVillager != null && answer.contains("^")) {
 					if(answer.startsWith(">>" + estimatedVillager + " "))
@@ -354,7 +368,7 @@ public class Mouth {
 			Agent a = as.get(0);
 			tmp.clear();
 			tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が人狼だと<思いますか>？"));
-			//tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が狂人だと<思いますか>？"));
+			tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が狂人だと<思いますか>？"));
 			tmp.add(r(">>" + a + " " + a + "<さん>、<あなた>は誰が村人だと<思いますか>？"));
 			ret = rnd(tmp, 10);
 			if(ret != null) return ret;
