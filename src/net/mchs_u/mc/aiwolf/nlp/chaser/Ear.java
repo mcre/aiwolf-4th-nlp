@@ -339,9 +339,15 @@ public class Ear{
 							if(acitonClause.getAiwolfWordMeaning().equals("占い")) // 占った理由が知りたい
 								qas.put(key, prefix + "それは昨日からちょっと様子がおかしいと思ったから……。");
 				}
+				if(willClause.getMain().equals("聞く")) { // 聞きたい
+					qas.put(key, prefix + "うーん、まだ考えがまとまらない<よ>。");
+				}
 				if(willClause.getAiwolfWordMeaning() != null && willClause.getAiwolfWordMeaning().equals("投票")) {
 					tmp = willClause.getKakuMap().get("ヲ");
 					if(tmp != null && tmp.getAttributes().contains("疑問詞")) // 誰を吊りたい
+						qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
+					Set<String> mods = willClause.getModalities(); // ○○を吊りましょう
+					if(tmp != null && mods.contains("意志") && mods.contains("勧誘") && !willClause.getText().contains("としたんだ")) // 「吊ろうとしたんだ」がここに入ってくるので回避
 						qas.put(key, prefix + "いま時点では<僕>は#<さん>に投票しようと思っている<よ>。");
 				}
 				if(willClause.getAiwolfWordMeaning() != null && willClause.getAiwolfWordMeaning().equals("投票依頼")) {
@@ -361,6 +367,11 @@ public class Ear{
 						}
 					}
 				}
+				for(Clause requestClause: requestClauses) {
+					if(requestClause.getMain().equals("教える")) { // 教えてほしい
+						qas.put(key, prefix + "うーん、まだ考えがまとまらない<よ>。");
+					}
+				}
 			}
 						
 			if(Clause.findModalityClauses(clauses, "疑問").size() < 1) { // 疑問じゃない
@@ -373,6 +384,14 @@ public class Ear{
 					}
 				}
 			} else { // 疑問
+				for(Clause thinkClause: Clause.findMainClauses(clauses, "思う")) {
+					tmp = thinkClause.getKakuMap().get("修飾");
+					if(tmp != null && tmp.getAttributes().contains("疑問詞")) // どう思う？
+						qas.put(key, prefix + "うーん、まだ考えがまとまらない<よ>。");
+					tmp = thinkClause.getKakuMap().get("ト");
+					if(tmp != null && tmp.getAiwolfWordType() != null && tmp.getAiwolfWordType().equals("役職")) // 人狼と思う？
+						qas.put(key, prefix + "うーん、まだ考えがまとまらない<よ>。");
+				}
 				for(Clause suspiciousClause: Clause.findMainClauses(clauses, "疑い")) {
 					tmp = suspiciousClause.getChild();
 					if(tmp != null && tmp.getAttributes().contains("疑問詞")) // 疑い先はどこ？
