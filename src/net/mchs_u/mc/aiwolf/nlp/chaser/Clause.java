@@ -101,13 +101,18 @@ public class Clause {
 		else
 			knp = new KNP("/bin/sh", pathJuman, pathKNP);
 
-		ObjectNode root = knp.parse(text);
-		
+		ObjectNode root = knp.parse(text.replace("　", "").trim());
+
 		for(JsonNode clauseNode: root.get("clauseas")){
+			List<JsonNode> sdh = clauseNode.get("attributes").findValues("正規化代表表記");
+			String tmpMain = "";
+			if(sdh.size() >0 )
+				tmpMain = sdh.get(0).get(0).asText();
+			
 			Clause clause = new Clause(
 					clauses.size(),
 					clauseNode.get("clausea").asText(),
-					clauseNode.get("attributes").findValues("正規化代表表記").get(0).get(0).asText(),
+					tmpMain,
 					clauseNode.get("target").asText());
 			
 			for(JsonNode clAtt: clauseNode.get("attributes"))

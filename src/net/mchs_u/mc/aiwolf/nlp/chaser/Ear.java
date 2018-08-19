@@ -117,11 +117,15 @@ public class Ear{
 		tmp = tmp.replace("ぼく、", "ぼくは");
 		tmp = tmp.replace("ボク、", "ボクは");
 		tmp = tmp.replace("わたし…占", "わたしは占");
+		tmp = tmp.replace("わたし…狂", "わたしは狂");
+		tmp = tmp.replace("わたし…人", "わたしは人");
 		tmp = tmp.replace("］の結果", "］の占い結果");
 		tmp = tmp.replace("人狼じゃ", "人狼だ");
 		tmp = tmp.replace("狂人じゃ", "狂人だ");
 		tmp = tmp.replace("人間じゃ", "人間だ");
 		tmp = tmp.replace("師じゃ", "師だ");
+		tmp = tmp.replace("していなっ・", "していないっ・");
+		tmp = tmp.replace("っ・・・！", "！");
 		tmp = tmp.replace("って言っておく", "です"); // 横着
 		tmp = tmp.replace("僕視点では", ""); // 横着
 		return tmp;
@@ -155,11 +159,12 @@ public class Ear{
 			if(questionTo != null) // 問いかけの場合はスキップ
 				break;
 			if(!roleCoClause.isNegative()) {
-				// ☆役職CO「占い師COします」				
+				// ☆役職CO「占い師COします」	
 				if(roleCoClause.getAttributes().contains("動態述語") &&
 						!roleCoClause.getModalities().contains("認識-推量") && // 「占いCOしているからでしょう」を回避
 						!roleCoClause.getModalities().contains("疑問") && // 「占いCO！？」を回避
 						!roleCoClause.getAttributes().contains("{ID:〜なら}") && // 「彼が占いCOなら」を回避
+						!roleCoClause.getText().contains("している") && // 「占いCOしている〜」を回避
 						(
 								(roleCoClause.getKakuMap().size() < 1) || // 「〇〇が占いCO」等を回避
 								(roleCoClause.getKakuMap().get("ガ") != null && roleCoClause.getKakuMap().get("ガ").getAttributes().contains("一人称"))) // ガ一人称の場合は救済
@@ -225,6 +230,7 @@ public class Ear{
 						) &&
 						!roleClause.getText().contains("かな") && // 「村人かな」を回避
 						!(child != null && child.getMain().equals("思う")) && // 「人狼だと思う」の回避
+						!(child != null && child.getMain().equals("予想")) && // 「人狼だと予想する」の回避
 						!(child != null && child.getMain().equals("出る") && child.getAttributes().contains("{正規化代表表記:[しまう,しまう]}"))) { // 「人狼と出てしまう」の回避
 					Agent target = Agent.getAgent(Integer.parseInt(tmp.getAiwolfWordMeaning()));
 					switch (roleClause.getAiwolfWordMeaning()) {
@@ -235,7 +241,19 @@ public class Ear{
 				
 				// ☆占い結果「Agent[04]さんを占いました。結果は人狼です」
 				tmp = roleClause.getKakuMap().get("ガ");
-				if(tmp != null && tmp.getMain().equals("結果") &&
+				Clause parent = null;
+				Clause gparent = null;
+				if(roleClause.getParents().size() > 0) {
+					parent = roleClause.getParents().iterator().next();
+					if(parent.getParents().size() > 0)
+						gparent = parent.getParents().iterator().next();
+				}
+				
+				if((
+						(tmp != null && tmp.getMain().equals("結果")) || 
+						(parent != null && parent.getMain().equals("結果")) ||
+						(gparent != null && gparent.getMain().equals("結果"))
+					) &&
 						!roleClause.getModalities().contains("疑問")) {
 					List<Clause> fullTalkClauses = Clause.createClauses(fullTalk); // プレイヤー名は対象文の外にあるのでここで改めて全文にKNPをかける
 					List<Clause> fullTalkActionClauses = Clause.findAiwolfTypeClauses(fullTalkClauses, "行為");
@@ -259,7 +277,7 @@ public class Ear{
 		}
 		
 		// ☆占い結果「Agent[04]さんを占ったら人狼でした」
-		for(Clause playerClause: playerClauses) {
+		for(Clause playerClause: playerClauses) {		
 			if(questionTo != null) // 問いかけの場合はスキップ
 				break;
 			for(Clause roleClause: roleClauses) {
@@ -532,9 +550,7 @@ public class Ear{
 			if (c == ']')
 				sb.setCharAt(i, '］');
 			if (c == ' ')
-				sb.setCharAt(i, '、');
-			if (c == '　')
-				sb.setCharAt(i, '、');
+				sb.setCharAt(i, '　');
 			if (c == '?')
 				sb.setCharAt(i, '？');
 			if (c == '!')
