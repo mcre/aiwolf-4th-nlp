@@ -5,6 +5,7 @@
 
 ## プログラム解説
 
+* [解説スライド](/doc/slide.pdf)
 * [第3回出場エージェント](https://github.com/mcre/aiwolf-3rd-nlp) をベースにしています。
 * docker上で動作するように修正しました。具体的手順は ```doc/cloud_memo.md``` に記載
 * PP時の発話パターンを増やしました。
@@ -18,12 +19,12 @@
 
 ### OSにインストールするもの
 
-* juman (7.01)
+* juman (java-juma-knpにはインストール済み)
   + ```dic/makedic.sh```を参考に辞書をコンパイルしてください
   + [このへん](http://d.hatena.ne.jp/knaka20blue/20110320/1300627864)を参考に```~/.jumanrc等```に```dic```(フルパスで)を設定してください。
   + (スペックによると思いますが)juman++だと動作が遅くて応答制限時間を満たさない場合があるので、jumanのほうが良いと思います。
 
-* knp (4.16)
+* knp (java-juma-knpにはインストール済み)
 
 * 備考
   + juman と knp のインストール先が `/usr/local/bin/juman`, `/usr/local/bin/knp`でない場合は、環境変数`PathJuman`, `PathKNP`を設定する必要があります。(いずれか片方が違う場合でも両方の設定が必須)
