@@ -3,6 +3,8 @@
 
 [第4回人狼知能大会 自然言語処理部門](http://aiwolf.org/4th-aiwolf-contest)の出場エージェントです。
 
+手元で動作させたい場合は ```doc/cloud_memo.md``` を参考にしてみてください。
+
 ## プログラム解説
 
 * [解説スライド](/doc/slide.pdf)
@@ -19,12 +21,12 @@
 
 ### OSにインストールするもの
 
-* juman (java-juma-knpにはインストール済み)
+* juman (docker image: java10-juma-knpにはインストール済み)
   + ```dic/makedic.sh```を参考に辞書をコンパイルしてください
   + [このへん](http://d.hatena.ne.jp/knaka20blue/20110320/1300627864)を参考に```~/.jumanrc等```に```dic```(フルパスで)を設定してください。
   + (スペックによると思いますが)juman++だと動作が遅くて応答制限時間を満たさない場合があるので、jumanのほうが良いと思います。
 
-* knp (java-juma-knpにはインストール済み)
+* knp (docker image: java10-juma-knpにはインストール済み)
 
 * 備考
   + juman と knp のインストール先が `/usr/local/bin/juman`, `/usr/local/bin/knp`でない場合は、環境変数`PathJuman`, `PathKNP`を設定する必要があります。(いずれか片方が違う場合でも両方の設定が必須)
