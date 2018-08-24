@@ -1,3 +1,5 @@
+実行の例なので、不要な部分は適宜読み飛ばしてください。
+
 ## 1. Azure登録
 
 * https://azure.microsoft.com/ja-jp/free/
@@ -34,7 +36,8 @@ $ sudo apt-get install docker-ce
 
 ## 4. 必要なjarライブラリを準備
 
-local(事前に必要な.jarを準備)
+* local(事前に必要な.jarを準備)
+    - 必要な.jarのリストは`README.md`を参照してください。
 
 ```
 $ zip -j ~/Desktop/lib.zip ~/GoogleDrive/Documents/programming/java/aiwolf/aiwolf-4th-nlp/lib/*.jar
